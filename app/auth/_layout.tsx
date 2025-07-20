@@ -11,6 +11,13 @@ export default function AuthLayout() {
         }}
       />
       <Stack.Screen
+        name="products"
+        options={{
+          title: 'Produtos',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="profile"
         options={{
           title: 'Perfil',

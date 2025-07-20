@@ -132,14 +132,6 @@ export default function Home() {
             Resumo do Dia
           </Typography>
           <View className="flex-row justify-between">
-            {/* <View className="items-center">
-              <Typography variant="h2" className="text-green-500 font-bold">
-                12
-              </Typography>
-              <Typography variant="body-secondary" className="text-xs">
-                Orçamentos
-              </Typography>
-            </View> */}
             <View className="items-center">
               <Typography variant="h2" className="text-green-500 font-bold">
                 8
@@ -193,7 +185,7 @@ export default function Home() {
           </View>
           <Button
             title="Novo Pedido"
-            onPress={() => router.push('/auth/settings')}
+            onPress={() => {}}
             variant="outlined"
             fullWidth
             className="mt-4"
