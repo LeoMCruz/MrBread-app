@@ -1,104 +1,205 @@
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { Link, router } from 'expo-router';
-import Counter from '@/components/Counter';
-import clsx from 'clsx';
+import { View, ScrollView, Pressable } from 'react-native';
+import { router } from 'expo-router';
+import Typography from '@/components/ui/Typography';
+import Button from '@/components/ui/Button';
+import Header from '@/components/ui/Header';
+import IconButton from '@/components/ui/IconButton';
+import { 
+  LogOut, 
+  Users, 
+  Package, 
+  Wrench, 
+  FileText, 
+  ShoppingCart, 
+  Settings, 
+  TrendingUp,
+  User,
+  Building,
+  Menu
+} from 'lucide-react-native';
+import { useAuthStore } from '@/stores/authStore';
 
-export default function AuthHome() {
-  const isDarkMode = false;
-  const userName = "Usuário"; // Aqui você pegaria do contexto de autenticação
+interface MenuCard {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  route: string;
+  color: string;
+  bgColor: string;
+}
+
+export default function Home() {
+  const { user, logout } = useAuthStore();
 
   const handleLogout = () => {
-    // Aqui você faria o logout
-    router.replace('/public/index');
+    console.log('Logout');
+    logout();
+    router.replace('/public/login');
+  };
+
+  const menuCards: MenuCard[] = [
+    {
+      id: 'clients',
+      title: 'Clientes',
+      description: 'Gerenciar clientes',
+      icon: <Users size={24} color="#10B981" />,
+      route: '/auth/clients',
+      color: '#10B981',
+      bgColor: '#064E3B'
+    },
+    {
+      id: 'products',
+      title: 'Produtos',
+      description: 'Cadastrar produtos',
+      icon: <Package size={24} color="#3B82F6" />,
+      route: '/auth/products',
+      color: '#3B82F6',
+      bgColor: '#1E3A8A'
+    },
+    {
+      id: 'services',
+      title: 'Serviços',
+      description: 'Cadastrar serviços',
+      icon: <Wrench size={24} color="#F59E0B" />,
+      route: '/auth/services',
+      color: '#F59E0B',
+      bgColor: '#92400E'
+    },
+    {
+      id: 'budgets',
+      title: 'Pedidos',
+      description: 'Gerenciar Pedidos',
+      icon: <FileText size={24} color="#8B5CF6" />,
+      route: '/auth/budgets',
+      color: '#8B5CF6',
+      bgColor: '#5B21B6'
+    },
+    {
+      id: 'reports',
+      title: 'Relatórios',
+      description: 'Visualizar relatórios',
+      icon: <TrendingUp size={24} color="#06B6D4" />,
+      route: '/auth/reports',
+      color: '#06B6D4',
+      bgColor: '#0E7490'
+    },
+    {
+      id: 'settings',
+      title: 'Configurações',
+      description: 'Gerenciar configurações',
+      icon: <Settings size={24} color="#F3F5F7" />,
+      route: '/auth/settings',
+      color: '#131517',
+      bgColor: '#131517'
+    }
+  ];
+
+  const handleMenuPress = (route: string) => {
+    router.push(route);
   };
 
   return (
-    <ScrollView className={clsx(
-      "flex-1",
-      isDarkMode ? "bg-gray-900" : "bg-white"
-    )}>
-      <View className="px-6 py-8">
-        <Text className={clsx(
-          "text-2xl font-bold mb-2",
-          isDarkMode ? "text-white" : "text-gray-900"
-        )}>
-          Olá, {userName}! 👋
-        </Text>
-        
-        <Text className={clsx(
-          "text-lg mb-8",
-          isDarkMode ? "text-gray-300" : "text-gray-600"
-        )}>
-          Bem-vindo à área autenticada do MrBread App
-        </Text>
+    <View className="flex-1 bg-gray-900">
+      <Header
+        rightActions={
+          <IconButton
+            icon={<LogOut size={20} color="#F3F5F7" />}
+            onPress={handleLogout}
+            variant="ghost"
+          />
+        }
+      />
 
-        {/* Cards de Navegação */}
-        <View className="space-y-4 mb-8">
-          <Link href="/auth/profile" asChild>
-            <TouchableOpacity className={clsx(
-              "p-6 rounded-lg shadow-lg",
-              isDarkMode ? "bg-gray-800" : "bg-white border border-gray-200"
-            )}>
-              <Text className={clsx(
-                "text-xl font-semibold mb-2",
-                isDarkMode ? "text-white" : "text-gray-900"
-              )}>
-                👤 Perfil
-              </Text>
-              <Text className={clsx(
-                "text-base",
-                isDarkMode ? "text-gray-300" : "text-gray-600"
-              )}>
-                Gerencie suas informações pessoais
-              </Text>
-            </TouchableOpacity>
-          </Link>
-
-          <Link href="/auth/settings" asChild>
-            <TouchableOpacity className={clsx(
-              "p-6 rounded-lg shadow-lg",
-              isDarkMode ? "bg-gray-800" : "bg-white border border-gray-200"
-            )}>
-              <Text className={clsx(
-                "text-xl font-semibold mb-2",
-                isDarkMode ? "text-white" : "text-gray-900"
-              )}>
-                ⚙️ Configurações
-              </Text>
-              <Text className={clsx(
-                "text-base",
-                isDarkMode ? "text-gray-300" : "text-gray-600"
-              )}>
-                Personalize suas preferências
-              </Text>
-            </TouchableOpacity>
-          </Link>
-        </View>
-
-        {/* Componente Counter */}
-        <View className="mb-8">
-          <Text className={clsx(
-            "text-xl font-semibold mb-4 text-center",
-            isDarkMode ? "text-white" : "text-gray-900"
-          )}>
-            Contador Interativo
-          </Text>
-          <Counter />
-        </View>
-
-        {/* Botão de Logout */}
-        <TouchableOpacity
-          onPress={handleLogout}
-          className={clsx(
-            "p-4 rounded-lg",
-            isDarkMode ? "bg-red-600" : "bg-red-500"
-          )}
+              {/* Content */}
+        <ScrollView 
+          className="flex-1 px-6 pt-6"
+          contentContainerStyle={{ flexGrow: 1 }}
         >
-          <Text className="text-white font-semibold text-center">
-            Sair da Conta
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+                    {/* Welcome Section */}
+          <View className="mb-8 ">
+            <Typography variant="h2" className="text-center mb-2">
+              Bem-vindo, Usuário!
+            </Typography>
+            <Typography variant="body-secondary" className="text-center">
+              Gerencie seus orçamentos e pedidos de venda
+            </Typography>
+          </View>
+
+        {/* Quick Stats */}
+        <View className="bg-gray-800 rounded-xl p-4 mb-6">
+          <Typography variant="h3" className="text-white mb-3">
+            Resumo do Dia
+          </Typography>
+          <View className="flex-row justify-between">
+            {/* <View className="items-center">
+              <Typography variant="h2" className="text-green-500 font-bold">
+                12
+              </Typography>
+              <Typography variant="body-secondary" className="text-xs">
+                Orçamentos
+              </Typography>
+            </View> */}
+            <View className="items-center">
+              <Typography variant="h2" className="text-green-500 font-bold">
+                8
+              </Typography>
+              <Typography variant="body-secondary" className="text-xs">
+                Pedidos
+              </Typography>
+            </View>
+            <View className="items-center">
+              <Typography variant="h2" className="text-purple-500 font-bold">
+                R$ 15.420
+              </Typography>
+              <Typography variant="body-secondary" className="text-xs">
+                Faturamento Previsto
+              </Typography>
+            </View>
+          </View>
+        </View>
+
+        {/* Menu Grid */}
+        <View className="mb-6">
+          <Typography variant="h3" className="text-white mb-4">
+            Menu Principal
+          </Typography>
+          <View className="flex-row flex-wrap justify-between">
+            {menuCards.map((card) => (
+              <Pressable
+                key={card.id}
+                onPress={() => handleMenuPress(card.route)}
+                className="w-[48%] mb-4"
+              >
+                <View 
+                  className="bg-gray-800 rounded-xl p-4 border border-gray-700"
+                  style={{ borderLeftColor: card.color, borderLeftWidth: 4 }}
+                >
+                  <View 
+                    className="w-12 h-12 rounded-lg items-center justify-center mb-3"
+                    style={{ backgroundColor: card.bgColor }}
+                  >
+                    {card.icon}
+                  </View>
+                  <Typography variant="h3" className="text-white mb-1">
+                    {card.title}
+                  </Typography>
+                  <Typography variant="body-secondary" className="text-xs">
+                    {card.description}
+                  </Typography>
+                </View>
+              </Pressable>
+            ))}
+          </View>
+          <Button
+            title="Novo Pedido"
+            onPress={() => router.push('/auth/settings')}
+            variant="outlined"
+            fullWidth
+            className="mt-4"
+          />
+        </View>
+      </ScrollView>
+    </View>
   );
 } 

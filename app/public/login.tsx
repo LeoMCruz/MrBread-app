@@ -8,14 +8,15 @@ import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
 import GoogleIcon from '@/components/assets/google-color-icon.svg';
 import { loginSchema, type LoginFormData } from '@/lib/validations';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function Login() {
+  const { login, isLoading } = useAuthStore();
   const [formData, setFormData] = useState<LoginFormData>({
     email: '',
     password: '',
   });
   const [errors, setErrors] = useState<Partial<LoginFormData>>({});
-  const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const validateField = (field: keyof LoginFormData, value: string) => {
@@ -48,13 +49,13 @@ export default function Login() {
     const result = loginSchema.safeParse(formData);
     
     if (result.success) {
-      setIsLoading(true);
-      
-      // Simular login
-      setTimeout(() => {
-        setIsLoading(false);
-        router.replace('/auth/home');
-      }, 2000);
+      try {
+        await login(formData.email, formData.password);
+        // O redirecionamento acontece automaticamente pelo _layout.tsx
+      } catch (error) {
+        // Handle error se necessário
+        console.error('Erro no login:', error);
+      }
     } else {
       const fieldErrors: Partial<LoginFormData> = {};
       

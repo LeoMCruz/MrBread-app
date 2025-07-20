@@ -7,7 +7,7 @@ export default function AuthLayout() {
         name="home"
         options={{
           title: 'Início',
-          headerShown: true,
+          headerShown: false,
         }}
       />
       <Stack.Screen

@@ -9,8 +9,10 @@ import Button from '@/components/ui/Button';
 import Header from '@/components/ui/Header';
 import IconButton from '@/components/ui/IconButton';
 import { registerSchema, type RegisterFormData } from '@/lib/validations';
+import { useAuthStore } from '@/stores/authStore';
 
 export default function Register() {
+  const { login, isLoading } = useAuthStore();
   const [formData, setFormData] = useState<RegisterFormData>({
     name: '',
     email: '',
@@ -22,7 +24,6 @@ export default function Register() {
   const [errors, setErrors] = useState<Partial<RegisterFormData>>({});
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
   const validateField = (field: keyof RegisterFormData, value: string) => {
     // Só validar se o campo foi tocado ou se já tem erro
@@ -54,13 +55,14 @@ export default function Register() {
     const result = registerSchema.safeParse(formData);
     
     if (result.success) {
-      setIsLoading(true);
-      
-      // Simular cadastro
-      setTimeout(() => {
-        setIsLoading(false);
-        router.replace('/auth/home');
-      }, 2000);
+      try {
+        // Simular cadastro e fazer login automaticamente
+        await login(formData.email, formData.password);
+        // O redirecionamento acontece automaticamente pelo _layout.tsx
+      } catch (error) {
+        // Handle error se necessário
+        console.error('Erro no registro:', error);
+      }
     } else {
       const fieldErrors: Partial<RegisterFormData> = {};
       
