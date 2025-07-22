@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import { View } from 'react-native';
-import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
 import Modal from '@/components/ui/Modal';
 import { 
   Package, 
   DollarSign,
-  Tag
 } from 'lucide-react-native';
 
 interface Product {
@@ -85,6 +83,7 @@ export default function NewProduct({
       title="Novo Produto"
       icon={<Package size={24} color="#3B82F6" />}
       saved={!loading}
+      height={0.48}
       onSave={handleSave}
       footer={
         <>
@@ -103,35 +102,17 @@ export default function NewProduct({
         </>
       }
     >
-      <View className="space-y-4">
+      <View className="gap-4">
         <Input
           label="Nome do Produto"
           placeholder="Ex: Pão Francês"
           value={formData.name}
           onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
           leftIcon={<Package size={20} color="#6b7280" />}
-        />
-        
-        <Input
-          label="Código"
-          placeholder="Ex: PF001"
-          value={formData.code}
-          onChangeText={(text) => setFormData(prev => ({ ...prev, code: text }))}
-          leftIcon={<Tag size={20} color="#6b7280" />}
-          autoCapitalize="characters"
-        />
-        
-        <Input
-          label="Categoria"
-          placeholder="Ex: Pães"
-          value={formData.category}
-          onChangeText={(text) => setFormData(prev => ({ ...prev, category: text }))}
-          leftIcon={<Tag size={20} color="#6b7280" />}
-        />
-        
+        />         
         <Input
           label="Preço"
-          placeholder="0,00"
+          placeholder="R$ 0,00"
           value={formData.price}
           onChangeText={(text) => setFormData(prev => ({ ...prev, price: text }))}
           leftIcon={<DollarSign size={20} color="#6b7280" />}

@@ -3,13 +3,12 @@ import { z } from 'zod';
 // Schema para login
 export const loginSchema = z.object({
   email: z
-    .string()
-    .min(1, 'E-mail é obrigatório')
-    .email('E-mail inválido'),
+    .email('E-mail inválido')
+    .min(1, 'E-mail é obrigatório'),
   password: z
     .string()
     .min(1, 'Senha é obrigatória')
-    .min(6, 'Senha deve ter pelo menos 6 caracteres'),
+    .min(8, 'Senha deve ter pelo menos 8 caracteres'),
 });
 
 // Schema para registro
@@ -21,9 +20,8 @@ export const registerSchema = z.object({
     .regex(/^[a-zA-ZÀ-ÿ\s]+$/, 'Nome deve conter apenas letras'),
   
   email: z
-    .string()
-    .min(1, 'E-mail é obrigatório')
-    .email('E-mail inválido'),
+    .email('E-mail inválido')
+    .min(1, 'E-mail é obrigatório'),
   
   organization: z
     .string()

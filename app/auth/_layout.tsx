@@ -18,6 +18,41 @@ export default function AuthLayout() {
         }}
       />
       <Stack.Screen
+        name="services"
+        options={{
+          title: 'Serviços',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="customers"
+        options={{
+          title: 'Clientes',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="new-customer"
+        options={{
+          title: 'Novo Cliente',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="new-order"
+        options={{
+          title: 'Novo Pedido',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="orders"
+        options={{
+          title: 'Pedidos',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="profile"
         options={{
           title: 'Perfil',

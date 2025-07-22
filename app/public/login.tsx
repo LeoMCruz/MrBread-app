@@ -1,4 +1,4 @@
-import { View, Pressable, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Pressable, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform, StatusBar } from 'react-native';
 import { Link, router } from 'expo-router';
 import { useState } from 'react';
 import clsx from 'clsx';
@@ -82,7 +82,7 @@ export default function Login() {
         <View className="px-6 py-8">
         {/* Header */}
         <View className="mb-20">
-          <Typography variant="h1" className="text-center mb-2">
+          <Typography variant="h1" className="text-center text-white mb-2">
             MrBread
           </Typography>
           <Typography variant="body-secondary" className="text-center">
@@ -164,7 +164,7 @@ export default function Login() {
           <Typography variant="body-secondary" className="text-center">
             Não tem uma conta?{' '}
             <Link href="/public/register">
-              <Typography variant="link" className="inline">
+              <Typography variant="link" className="text-base">
                 Criar conta
               </Typography>
             </Link>

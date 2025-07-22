@@ -106,7 +106,7 @@ export default function Register() {
           <View className="px-6 pt-6">
         {/* Header */}
         <View className="mb-8">
-          <Typography variant="h2" className="text-center mb-2">
+          <Typography variant="h2" className="text-center text-white mb-2">
             MrBread
           </Typography>
           <Typography variant="body-secondary" className="text-center">
@@ -201,7 +201,7 @@ export default function Register() {
           <Typography variant="body-secondary" className="text-center">
             Já tem uma conta?{' '}
             <Link href="/public/login">
-              <Typography variant="link" className="inline">
+              <Typography variant="link" className="text-base">
                 Fazer login
               </Typography>
             </Link>

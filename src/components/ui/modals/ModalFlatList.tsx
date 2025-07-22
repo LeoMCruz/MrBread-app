@@ -6,16 +6,15 @@ import {
   Dimensions,
   TouchableWithoutFeedback,
   StatusBar,
-  ScrollView,
 } from "react-native";
 import { useBaseColors } from "@/styles/theme";
-import Typography from "./Typography";
+import Typography from "../Typography";
 import { Check, X } from "lucide-react-native";
-import IconButton from "./IconButton";
+import IconButton from "../IconButton";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
-interface ModalProps {
+interface ModalFlatListProps {
   visible: boolean;
   children: React.ReactNode;
   onClose?: () => void;
@@ -34,7 +33,7 @@ interface ModalProps {
   height?: number; 
 }
 
-export default function Modal({
+export default function ModalFlatList({
   visible,
   children,
   icon,
@@ -50,7 +49,7 @@ export default function Modal({
   headerActions,
   maxHeight = SCREEN_HEIGHT * 0.5,
   height,
-}: ModalProps) {
+}: ModalFlatListProps) {
   const colors = useBaseColors();
   const scale = useRef(new Animated.Value(0)).current;
   const opacity = useRef(new Animated.Value(0)).current;
@@ -157,17 +156,15 @@ export default function Modal({
             </View>
           )}
 
-          {/* Content */}
-          <ScrollView 
-            showsVerticalScrollIndicator={false}
+          {/* Content - View normal ao invés de ScrollView */}
+          <View 
             className="flex-1"
-            contentContainerStyle={{ 
+            style={{ 
               padding: 16,
-              flexGrow: 1,
             }}
           >
             {children}
-          </ScrollView>
+          </View>
 
           {/* Footer */}
           {footer && (

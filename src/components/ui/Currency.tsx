@@ -11,7 +11,7 @@ import clsx from "clsx";
 import { Eye, EyeOff } from "lucide-react-native";
 import { useBaseColors } from "@/styles/theme";
 
-interface CurrencyProps extends Omit<TextInputProps, 'style'> {
+interface CurrencyProps extends Omit<TextInputProps, 'style' | 'onChangeText'> {
   label?: string;
   error?: string;
   success?: boolean;
@@ -30,6 +30,7 @@ interface CurrencyProps extends Omit<TextInputProps, 'style'> {
   decimalSeparator?: string;
   groupSeparator?: string;
   precision?: number;
+  onChangeText?: (text: string, rawText: string) => void;
 }
 
 export default function Currency({
@@ -54,13 +55,7 @@ export default function Currency({
   ...rest
 }: CurrencyProps) {
   const colors = useBaseColors();
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
-
-  // 🔄 Toggle para senha
-  const togglePasswordVisibility = () => {
-    setIsPasswordVisible(!isPasswordVisible);
-  };
 
   // 🎨 Classes base
   const containerClass = clsx(
@@ -149,12 +144,16 @@ export default function Currency({
         {/* Input de Moeda */}
         <MaskedTextInput
           className={inputClass}
+          style={{ 
+            flex: 1, 
+            width: '100%',
+            paddingLeft: leftIcon ? 48 : 16, // 48px = 12 * 4 (pl-12)
+            paddingRight: (rightIcon || secureTextEntry) ? 48 : 16, // 48px = 12 * 4 (pr-12)
+            color: '#ffffff', // Garante que o texto digitado seja branco
+          }}
           placeholderTextColor="#6b7280"
-          secureTextEntry={secureTextEntry && !isPasswordVisible}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          placeholder="R$ 0,00"
-          keyboardType="numeric"
           type="currency"
           options={{
             prefix,
@@ -164,7 +163,8 @@ export default function Currency({
           }}
           onChangeText={(text, rawText) => {
             if (rest.onChangeText) {
-              rest.onChangeText(text);
+              // @ts-ignore - MaskedTextInput retorna dois parâmetros
+              rest.onChangeText(text, rawText);
             }
           }}
           {...rest}

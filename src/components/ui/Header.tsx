@@ -36,15 +36,12 @@ export default function Header({
   );
 
   // 📏 Altura baseada na plataforma
-  const headerHeight = Platform.OS === 'ios' ? 44 + insets.top : 56 + insets.top;
+  const headerHeight = Platform.OS === 'android' ? " px-4 flex-row items-center justify-between" : "absolute top-0 left-0 right-0 z-10 px-4 flex-row justify-between";
 
   return (
     <View
       className={headerClass}
-      style={{
-        height: headerHeight,
-        paddingTop: insets.top,
-      }}
+      style={{ height: 50 + insets.top, paddingTop: insets.top,  }}
     >
       {/* Lado Esquerdo */}
       <View className="flex-row items-center flex-1">

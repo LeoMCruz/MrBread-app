@@ -1,17 +1,17 @@
 import React, { useState } from "react";
 import {
+  TextInput,
   TextInputProps,
   View,
   Pressable,
   ActivityIndicator,
   Text,
 } from "react-native";
-import MaskInput from "react-native-mask-input";
 import clsx from "clsx";
 import { Eye, EyeOff } from "lucide-react-native";
 import { useBaseColors } from "@/styles/theme";
 
-interface MaskedInputProps extends Omit<TextInputProps, 'style'> {
+interface InputMultiLineProps extends Omit<TextInputProps, 'style'> {
   label?: string;
   error?: string;
   success?: boolean;
@@ -25,13 +25,9 @@ interface MaskedInputProps extends Omit<TextInputProps, 'style'> {
   containerClassName?: string;
   labelClassName?: string;
   errorClassName?: string;
-  // Tipo de máscara
-  maskType?: "cnpj" | "cpf" | "phone" | "cep" | "date" | "currency";
-  // Máscara customizada (array de regex)
-  customMask?: (string | RegExp)[];
 }
 
-export default function MaskedInput({
+export default function InputMultiLine({
   label,
   error,
   success = false,
@@ -46,10 +42,10 @@ export default function MaskedInput({
   labelClassName,
   errorClassName,
   secureTextEntry,
-  maskType,
-  customMask,
+  multiline = true,
+  numberOfLines = 4,
   ...rest
-}: MaskedInputProps) {
+}: InputMultiLineProps) {
   const colors = useBaseColors();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -57,54 +53,6 @@ export default function MaskedInput({
   // 🔄 Toggle para senha
   const togglePasswordVisibility = () => {
     setIsPasswordVisible(!isPasswordVisible);
-  };
-
-  // 🎭 Máscaras predefinidas
-  const getMask = (type?: string) => {
-    switch (type) {
-      case 'cnpj':
-        return [
-          /\d/, /\d/, '.', 
-          /\d/, /\d/, /\d/, '.', 
-          /\d/, /\d/, /\d/, '/', 
-          /\d/, /\d/, /\d/, /\d/, '-', 
-          /\d/, /\d/
-        ];
-      case 'cpf':
-        return [
-          /\d/, /\d/, /\d/, '.', 
-          /\d/, /\d/, /\d/, '.', 
-          /\d/, /\d/, /\d/, '-', 
-          /\d/, /\d/
-        ];
-      case 'phone':
-        return [
-          '(', /\d/, /\d/, ')', ' ', 
-          /\d/, /\d/, /\d/, /\d/, /\d/, '-', 
-          /\d/, /\d/, /\d/, /\d/
-        ];
-      case 'cep':
-        return [
-          /\d/, /\d/, /\d/, /\d/, /\d/, '-', 
-          /\d/, /\d/, /\d/
-        ];
-      case 'date':
-        return [
-          /\d/, /\d/, '/', 
-          /\d/, /\d/, '/', 
-          /\d/, /\d/, /\d/, /\d/
-        ];
-      case 'currency':
-        return [
-          'R', '$', ' ',
-          /\d/, /\d/, /\d/, '.',
-          /\d/, /\d/, /\d/, '.',
-          /\d/, /\d/, /\d/, ',',
-          /\d/, /\d/
-        ];
-        default:
-        return customMask || [];
-    }
   };
 
   // 🎨 Classes base
@@ -121,12 +69,12 @@ export default function MaskedInput({
   );
 
   const inputContainerClass = clsx(
-    "flex-row items-center rounded-xl border-2",
+    "flex-row items-start rounded-xl border-2",
     {
-      // Tamanhos
-      "h-10 px-3": size === "sm",
-      "h-12 px-4": size === "md",
-      "h-14 px-4": size === "lg",
+      // Tamanhos - ajustados para multiline
+      "min-h-[40px] px-3 py-2": size === "sm",
+      "min-h-[48px] px-4 py-3": size === "md",
+      "min-h-[56px] px-4 py-3": size === "lg",
     },
     {
       // Variantes
@@ -186,39 +134,45 @@ export default function MaskedInput({
       <View className={inputContainerClass}>
         {/* Ícone Esquerdo */}
         {leftIcon && (
-          <View className={clsx(iconClass, "left-3")}>
+          <View className={clsx(iconClass, "left-3 top-3")}>
             {leftIcon}
           </View>
         )}
 
-        {/* Input com Máscara */}
-        <MaskInput
+        {/* Input */}
+        <TextInput
           className={inputClass}
           placeholderTextColor="#6b7280"
           secureTextEntry={secureTextEntry && !isPasswordVisible}
+          multiline={multiline}
+          numberOfLines={numberOfLines}
+          textAlignVertical="top"
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          mask={getMask(maskType)}
-          keyboardType="numeric"
-          onChangeText={(text: string, rawText: string) => {
-            if (rest.onChangeText) {
-              rest.onChangeText(text);
-            }
-          }}
           {...rest}
         />
 
         {/* Loading */}
         {loading && (
-          <View className={clsx(iconClass, "right-3")}>
+          <View className={clsx(iconClass, "right-3 top-3")}>
             <ActivityIndicator size="small" color={colors.primary} />
           </View>
         )}
 
-        {/* Ícone Direito */}
-        {!loading && rightIcon && (
-          <View className={clsx(iconClass, "right-3")}>
-            {rightIcon}
+        {/* Ícone Direito ou Toggle de Senha */}
+        {!loading && (rightIcon || secureTextEntry) && (
+          <View className={clsx(iconClass, "right-3 top-3")}>
+            {secureTextEntry ? (
+              <Pressable onPress={togglePasswordVisibility}>
+                {isPasswordVisible ? (
+                  <EyeOff size={20} color="#6b7280" />
+                ) : (
+                  <Eye size={20} color="#6b7280" />
+                )}
+              </Pressable>
+            ) : (
+              rightIcon
+            )}
           </View>
         )}
       </View>

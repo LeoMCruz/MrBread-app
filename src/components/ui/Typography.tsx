@@ -60,12 +60,12 @@ export default function Typography({
     "3xl": "text-3xl",
   };
 
-  // 🧬 Mapeamento de variantes para classes
+  // 🧬 Mapeamento de variantes para classes (sem cores para permitir override)
   const variantClassMap: Record<string, string> = {
-    h1: "text-3xl font-bold text-white",
-    h2: "text-2xl font-semibold text-white",
-    h3: "text-xl font-semibold text-white",
-    body: "text-base text-white",
+    h1: "text-3xl font-bold",
+    h2: "text-2xl font-semibold",
+    h3: "text-xl font-semibold",
+    body: "text-base",
     "body-secondary": "text-base text-gray-300",
     caption: "text-sm text-gray-400",
     link: "text-base font-medium text-blue-500",
@@ -90,7 +90,13 @@ export default function Typography({
   const sizeClass = sizeClassMap[finalSize];
   const computedFontColor = color ? colorMap[color] : undefined;
 
-  const textClassName = clsx(variantClass, sizeClass, className);
+  const textClassName = clsx(
+    variantClass, 
+    sizeClass, 
+    // Adiciona cor branca padrão se não houver cor customizada
+    !className?.includes('text-') && !color && 'text-white',
+    className
+  );
 
   return (
     <Text

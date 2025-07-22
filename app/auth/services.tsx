@@ -6,10 +6,10 @@ import Button from '@/components/ui/Button';
 import Header from '@/components/ui/Header';
 import IconButton from '@/components/ui/IconButton';
 import Input from '@/components/ui/Input';
-import NewProduct from '@/components/ui/modals/NewProduct';
+import NewService from '@/components/ui/modals/NewService';
 import { 
   ArrowLeft, 
-  Package, 
+  Wrench, 
   Plus, 
   Search, 
   Edit, 
@@ -18,7 +18,7 @@ import {
   Tag
 } from 'lucide-react-native';
 
-interface Product {
+interface Service {
   id: string;
   name: string;
   price: number;
@@ -27,48 +27,46 @@ interface Product {
   code: string;
 }
 
-export default function Products() {
+export default function Services() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
   // Mock data
-  const [products, setProducts] = useState<Product[]>([
+  const [services, setServices] = useState<Service[]>([
     {
       id: '1',
-      name: 'Pão Francês',
-      price: 0.50,
-      description: 'Pão francês tradicional',
-      category: 'Pães',
-      code: 'PF001'
+      name: 'Corte de Cabelo',
+      price: 25.00,
+      description: 'Corte de cabelo masculino',
+      category: 'Cabelo',
+      code: 'CC001'
     },
     {
       id: '2',
-      name: 'Pão de Queijo',
-      price: 2.50,
-      description: 'Pão de queijo caseiro',
-      category: 'Pães',
-      code: 'PQ002'
+      name: 'Barba',
+      price: 15.00,
+      description: 'Barba tradicional',
+      category: 'Barba',
+      code: 'BB002'
     },
     {
       id: '3',
-      name: 'Bolo de Chocolate',
-      price: 15.00,
-      description: 'Bolo de chocolate artesanal',
-      category: 'Bolos',
-      code: 'BC003'
+      name: 'Corte + Barba',
+      price: 35.00,
+      description: 'Corte de cabelo + barba',
+      category: 'Combo',
+      code: 'CB003'
     },
     {
       id: '4',
-      name: 'Croissant',
-      price: 4.50,
-      description: 'Croissant de manteiga',
-      category: 'Pães',
-      code: 'CR004'
+      name: 'Hidratação',
+      price: 45.00,
+      description: 'Hidratação capilar',
+      category: 'Tratamento',
+      code: 'HD004'
     }
   ]);
-
-
 
   const handleBack = () => {
     router.back();
@@ -78,43 +76,43 @@ export default function Products() {
     setSearchQuery(query);
   };
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredServices = services.filter(service =>
+    service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    service.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    service.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleAddProduct = () => {
+  const handleAddService = () => {
     setIsModalVisible(true);
   };
 
-  const handleSaveProduct = async (productData: Omit<Product, 'id'>) => {
+  const handleSaveService = async (serviceData: Omit<Service, 'id'>) => {
     setIsLoading(true);
     
     // Simular delay de API
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const newProduct: Product = {
+    const newService: Service = {
       id: Date.now().toString(),
-      ...productData
+      ...serviceData
     };
 
-    setProducts(prev => [newProduct, ...prev]);
+    setServices(prev => [newService, ...prev]);
     
     setIsLoading(false);
     setIsModalVisible(false);
   };
 
-  const handleEditProduct = (product: Product) => {
+  const handleEditService = (service: Service) => {
     // Implementar edição
-    console.log('Editar produto:', product);
+    console.log('Editar serviço:', service);
   };
 
-  const handleDeleteProduct = (productId: string) => {
-    setProducts(prev => prev.filter(p => p.id !== productId));
+  const handleDeleteService = (serviceId: string) => {
+    setServices(prev => prev.filter(s => s.id !== serviceId));
   };
 
-  const renderProductItem = ({ item }: { item: Product }) => (
+  const renderServiceItem = ({ item }: { item: Service }) => (
     <View className="bg-gray-800 rounded-xl p-4 mb-2 border border-gray-700">
       <View className="flex-row justify-between items-start mb-1">
         <View className="flex-1">
@@ -133,12 +131,12 @@ export default function Products() {
         <View className=" gap-6 flex-col justify-between">
           <View className="flex-row justify-end items-end gap-5 ">
             <Pressable
-              onPress={() => handleEditProduct(item)}
+              onPress={() => handleEditService(item)}
             >
               <Edit size={16} color="#4A90E2" />
             </Pressable>
             <Pressable
-              onPress={() => handleDeleteProduct(item.id)}
+              onPress={() => handleDeleteService(item.id)}
             >
               <Trash2 size={16} color="#ef4444" />
             </Pressable>
@@ -157,7 +155,7 @@ export default function Products() {
     <SafeAreaView className="flex-1 bg-gray-900 pt-7 pb-6">
       {/* Header */}
       <Header
-        title="Produtos"
+        title="Serviços"
         leftIcon={
           <IconButton
             icon={<ArrowLeft size={20} color="#F3F5F7" />}
@@ -172,7 +170,7 @@ export default function Products() {
         {/* Search */}
         <View className="mb-6">
           <Input
-            placeholder="Buscar produtos..."
+            placeholder="Buscar serviços..."
             leftIcon={<Search size={20} color="#6b7280" />}
             value={searchQuery}
             onChangeText={handleSearch}
@@ -180,40 +178,40 @@ export default function Products() {
           />
         </View>
 
-        {/* Novo Produto Button */}
+        {/* Novo Serviço Button */}
         <View className="mb-6">
           <Button
-            title="Novo Produto"
+            title="Novo Serviço"
             variant="outlined"
             leftIcon={<Plus size={16} color="#3b82f6" />}
-            onPress={handleAddProduct}
+            onPress={handleAddService}
             fullWidth
           />
         </View>
 
-        {/* Products List */}
+        {/* Services List */}
         <View className="flex-1 mb-6">
-          {filteredProducts.length === 0 ? (
+          {filteredServices.length === 0 ? (
             <View className="flex-1 justify-center items-center">
-              <Package size={48} color="#6b7280" />
+              <Wrench size={48} color="#6b7280" />
               <Typography variant="h3" className="text-gray-400 mt-4 mb-2">
-                Nenhum produto encontrado
+                Nenhum serviço encontrado
               </Typography>
               <Typography variant="body-secondary" className="text-center">
-                {searchQuery ? 'Tente ajustar sua busca' : 'Cadastre seu primeiro produto'}
+                {searchQuery ? 'Tente ajustar sua busca' : 'Cadastre seu primeiro serviço'}
               </Typography>
               {!searchQuery && (
                 <Button
-                  title="Adicionar Produto"
-                  onPress={handleAddProduct}
+                  title="Adicionar Serviço"
+                  onPress={handleAddService}
                   className="mt-4"
                 />
               )}
             </View>
           ) : (
             <FlatList
-              data={filteredProducts}
-              renderItem={renderProductItem}
+              data={filteredServices}
+              renderItem={renderServiceItem}
               keyExtractor={(item) => item.id}
               showsVerticalScrollIndicator={false}
               contentContainerStyle={{ paddingBottom: 20 }}
@@ -222,11 +220,11 @@ export default function Products() {
         </View>
       </View>
 
-      {/* Add Product Modal */}
-      <NewProduct
+      {/* Add Service Modal */}
+      <NewService
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
-        onSave={handleSaveProduct}
+        onSave={handleSaveService}
         loading={isLoading}
       />
     </SafeAreaView>
