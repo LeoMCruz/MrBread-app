@@ -32,6 +32,7 @@ interface Customer {
 
 export default function Customers() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   
   // Mock data
   const [customers, setCustomers] = useState<Customer[]>([
@@ -97,14 +98,43 @@ export default function Customers() {
   );
 
   const handleAddCustomer = () => {
-    router.push('/auth/new-customer');
+    router.push('/auth/new-customer?mode=create');
   };
 
 
 
   const handleEditCustomer = (customer: Customer) => {
-    // Implementar edição
-    console.log('Editar cliente:', customer);
+    const customerData = JSON.stringify(customer);
+    router.push(`/auth/new-customer?mode=edit&customerData=${encodeURIComponent(customerData)}`);
+  };
+
+  const handleSaveCustomer = async (customerData: Omit<Customer, 'id'>) => {
+    setIsLoading(true);
+    
+    // Simular delay de API
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    const newCustomer: Customer = {
+      id: Date.now().toString(),
+      ...customerData
+    };
+
+    setCustomers(prev => [newCustomer, ...prev]);
+    
+    setIsLoading(false);
+  };
+
+  const handleEditCustomerSave = async (editedCustomer: Customer) => {
+    setIsLoading(true);
+    
+    // Simular delay de API
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    setCustomers(prev => prev.map(c => 
+      c.id === editedCustomer.id ? editedCustomer : c
+    ));
+    
+    setIsLoading(false);
   };
 
   const handleDeleteCustomer = (customerId: string) => {

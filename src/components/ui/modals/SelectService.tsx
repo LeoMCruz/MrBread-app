@@ -90,8 +90,8 @@ export default function SelectService({
       <Pressable
         onPress={() => toggleServiceSelection(item)}
         disabled={isAlreadyInList}
-        className={`bg-gray-700 rounded-lg p-3 border border-gray-600 mb-2 ${
-          isSelected ? 'border-orange-500 bg-orange-900/20' : ''
+        className={`rounded-lg p-3 border mb-2 ${
+          isSelected ? 'border-orange-500 bg-orange-900/20' : 'bg-gray-700 border-gray-600'
         } ${
           isAlreadyInList ? 'opacity-50' : ''
         }`}

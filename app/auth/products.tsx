@@ -31,6 +31,8 @@ export default function Products() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
   
   // Mock data
   const [products, setProducts] = useState<Product[]>([
@@ -85,6 +87,8 @@ export default function Products() {
   );
 
   const handleAddProduct = () => {
+    setModalMode('create');
+    setEditingProduct(undefined);
     setIsModalVisible(true);
   };
 
@@ -105,9 +109,24 @@ export default function Products() {
     setIsModalVisible(false);
   };
 
+  const handleEditProductSave = async (editedProduct: Product) => {
+    setIsLoading(true);
+    
+    // Simular delay de API
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    setProducts(prev => prev.map(p => 
+      p.id === editedProduct.id ? editedProduct : p
+    ));
+    
+    setIsLoading(false);
+    setIsModalVisible(false);
+  };
+
   const handleEditProduct = (product: Product) => {
-    // Implementar edição
-    console.log('Editar produto:', product);
+    setModalMode('edit');
+    setEditingProduct(product);
+    setIsModalVisible(true);
   };
 
   const handleDeleteProduct = (productId: string) => {
@@ -222,12 +241,15 @@ export default function Products() {
         </View>
       </View>
 
-      {/* Add Product Modal */}
+      {/* Add/Edit Product Modal */}
       <NewProduct
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
         onSave={handleSaveProduct}
+        onEdit={handleEditProductSave}
         loading={isLoading}
+        mode={modalMode}
+        initialData={editingProduct}
       />
     </SafeAreaView>
   );

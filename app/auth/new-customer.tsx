@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, ScrollView, SafeAreaView, Platform, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
 import Header from '@/components/ui/Header';
@@ -14,7 +14,8 @@ import {
   MapPin,
   Mail,
   Phone,
-  FileText
+  FileText,
+  Edit
 } from 'lucide-react-native';
 
 interface Customer {
@@ -30,6 +31,10 @@ interface Customer {
 }
 
 export default function NewCustomer() {
+  const params = useLocalSearchParams();
+  const mode = params.mode as 'create' | 'edit' || 'create';
+  const customerData = params.customerData ? JSON.parse(params.customerData as string) : null;
+  
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     tradeName: '',
@@ -41,6 +46,22 @@ export default function NewCustomer() {
     email: '',
     phone: ''
   });
+
+  // Preencher formulário com dados iniciais quando em modo de edição
+  useEffect(() => {
+    if (mode === 'edit' && customerData) {
+      setFormData({
+        tradeName: customerData.tradeName,
+        companyName: customerData.companyName,
+        cnpj: customerData.cnpj,
+        state: customerData.state,
+        city: customerData.city,
+        address: customerData.address,
+        email: customerData.email,
+        phone: customerData.phone
+      });
+    }
+  }, [mode, customerData]);
 
   const handleBack = () => {
     router.back();
@@ -57,19 +78,36 @@ export default function NewCustomer() {
     // Simular delay de API
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    const newCustomer = {
-      tradeName: formData.tradeName,
-      companyName: formData.companyName,
-      cnpj: formData.cnpj,
-      state: formData.state,
-      city: formData.city,
-      address: formData.address,
-      email: formData.email,
-      phone: formData.phone
-    };
-
-    // Aqui você salvaria o cliente
-    console.log('Novo cliente:', newCustomer);
+    if (mode === 'edit' && customerData) {
+      const editedCustomer = {
+        id: customerData.id,
+        tradeName: formData.tradeName,
+        companyName: formData.companyName,
+        cnpj: formData.cnpj,
+        state: formData.state,
+        city: formData.city,
+        address: formData.address,
+        email: formData.email,
+        phone: formData.phone
+      };
+      // Aqui você atualizaria o cliente
+      console.log('Cliente editado:', editedCustomer);
+      // Em um app real, você chamaria uma API aqui
+    } else {
+      const newCustomer = {
+        tradeName: formData.tradeName,
+        companyName: formData.companyName,
+        cnpj: formData.cnpj,
+        state: formData.state,
+        city: formData.city,
+        address: formData.address,
+        email: formData.email,
+        phone: formData.phone
+      };
+      // Aqui você salvaria o cliente
+      console.log('Novo cliente:', newCustomer);
+      // Em um app real, você chamaria uma API aqui
+    }
     
     setIsLoading(false);
     router.back();
@@ -79,7 +117,7 @@ export default function NewCustomer() {
     <SafeAreaView className="flex-1 bg-gray-900 pt-7 pb-6">
       {/* Header */}
       <Header
-        title="Novo Cliente"
+        title={mode === 'edit' ? 'Editar Cliente' : 'Novo Cliente'}
         leftIcon={
           <IconButton
             icon={<ArrowLeft size={20} color="#F3F5F7" />}
@@ -170,7 +208,7 @@ export default function NewCustomer() {
             maskType="phone"
           />
           <Button
-            title={isLoading ? <ActivityIndicator size="small" color="#F3F5F7" /> : "Salvar"}
+            title={isLoading ? <ActivityIndicator size="small" color="#F3F5F7" /> : (mode === 'edit' ? 'Atualizar' : 'Salvar')}
             onPress={handleSave}
             disabled={isLoading || !formData.tradeName || !formData.companyName || !formData.cnpj}
             loading={isLoading}

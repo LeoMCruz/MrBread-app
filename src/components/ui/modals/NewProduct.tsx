@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View } from 'react-native';
 import Button from '@/components/ui/Button';
 import Input from '@/components/ui/Input';
@@ -6,6 +6,7 @@ import Modal from '@/components/ui/Modal';
 import { 
   Package, 
   DollarSign,
+  Edit,
 } from 'lucide-react-native';
 
 interface Product {
@@ -21,14 +22,20 @@ interface NewProductProps {
   visible: boolean;
   onClose: () => void;
   onSave: (product: Omit<Product, 'id'>) => void;
+  onEdit?: (product: Product) => void;
   loading?: boolean;
+  mode?: 'create' | 'edit';
+  initialData?: Product;
 }
 
 export default function NewProduct({ 
   visible, 
   onClose, 
   onSave, 
-  loading = false 
+  onEdit,
+  loading = false,
+  mode = 'create',
+  initialData
 }: NewProductProps) {
   const [formData, setFormData] = useState({
     name: '',
@@ -38,21 +45,45 @@ export default function NewProduct({
     code: ''
   });
 
+  // Preencher formulário com dados iniciais quando em modo de edição
+  useEffect(() => {
+    if (mode === 'edit' && initialData) {
+      setFormData({
+        name: initialData.name,
+        price: initialData.price.toString(),
+        description: initialData.description,
+        category: initialData.category,
+        code: initialData.code
+      });
+    }
+  }, [mode, initialData, visible]);
+
   const handleSave = () => {
     if (!formData.name || !formData.price || !formData.code) {
       // Aqui você pode adicionar validação
       return;
     }
 
-    const newProduct = {
-      name: formData.name,
-      price: parseFloat(formData.price),
-      description: formData.description,
-      category: formData.category,
-      code: formData.code
-    };
-
-    onSave(newProduct);
+    if (mode === 'edit' && initialData && onEdit) {
+      const editedProduct: Product = {
+        id: initialData.id,
+        name: formData.name,
+        price: parseFloat(formData.price),
+        description: formData.description,
+        category: formData.category,
+        code: formData.code
+      };
+      onEdit(editedProduct);
+    } else {
+      const newProduct = {
+        name: formData.name,
+        price: parseFloat(formData.price),
+        description: formData.description,
+        category: formData.category,
+        code: formData.code
+      };
+      onSave(newProduct);
+    }
     
     // Limpar formulário
     setFormData({
@@ -76,12 +107,25 @@ export default function NewProduct({
     onClose();
   };
 
+  // Limpar formulário quando o modal é fechado
+  useEffect(() => {
+    if (!visible) {
+      setFormData({
+        name: '',
+        price: '',
+        description: '',
+        category: '',
+        code: ''
+      });
+    }
+  }, [visible]);
+
   return (
     <Modal
       visible={visible}
       onClose={handleClose}
-      title="Novo Produto"
-      icon={<Package size={24} color="#3B82F6" />}
+      title={mode === 'edit' ? 'Editar Produto' : 'Novo Produto'}
+      icon={mode === 'edit' ? <Edit size={24} color="#3B82F6" /> : <Package size={24} color="#3B82F6" />}
       saved={!loading}
       height={0.48}
       onSave={handleSave}
@@ -94,7 +138,7 @@ export default function NewProduct({
             className="flex-1"
           />
           <Button
-            title="Salvar"
+            title={mode === 'edit' ? 'Atualizar' : 'Salvar'}
             onPress={handleSave}
             loading={loading}
             className="flex-1"

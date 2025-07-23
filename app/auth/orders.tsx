@@ -106,8 +106,8 @@ export default function Orders() {
   );
 
   const handleViewOrder = (order: Order) => {
-    // Implementar visualização do pedido
-    console.log('Visualizar pedido:', order);
+    const orderData = JSON.stringify(order);
+    router.push(`/auth/view-order?orderData=${encodeURIComponent(orderData)}`);
   };
 
   const handleDeleteOrder = (orderId: string) => {

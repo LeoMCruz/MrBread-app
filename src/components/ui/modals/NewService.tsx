@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View } from 'react-native';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
@@ -7,7 +7,8 @@ import Modal from '@/components/ui/Modal';
 import { 
   Wrench, 
   DollarSign,
-  Tag
+  Tag,
+  Edit
 } from 'lucide-react-native';
 import Currency from '../Currency';
 
@@ -24,14 +25,20 @@ interface NewServiceProps {
   visible: boolean;
   onClose: () => void;
   onSave: (service: Omit<Service, 'id'>) => void;
+  onEdit?: (service: Service) => void;
   loading?: boolean;
+  mode?: 'create' | 'edit';
+  initialData?: Service;
 }
 
 export default function NewService({ 
   visible, 
   onClose, 
   onSave, 
-  loading = false 
+  onEdit,
+  loading = false,
+  mode = 'create',
+  initialData
 }: NewServiceProps) {
   const [formData, setFormData] = useState({
     name: '',
@@ -41,21 +48,45 @@ export default function NewService({
     code: ''
   });
 
+  // Preencher formulário com dados iniciais quando em modo de edição
+  useEffect(() => {
+    if (mode === 'edit' && initialData) {
+      setFormData({
+        name: initialData.name,
+        price: initialData.price.toString(),
+        description: initialData.description,
+        category: initialData.category,
+        code: initialData.code
+      });
+    }
+  }, [mode, initialData, visible]);
+
   const handleSave = () => {
     if (!formData.name || !formData.price || !formData.code) {
       // Aqui você pode adicionar validação
       return;
     }
 
-    const newService = {
-      name: formData.name,
-      price: parseFloat(formData.price),
-      description: formData.description,
-      category: formData.category,
-      code: formData.code
-    };
-
-    onSave(newService);
+    if (mode === 'edit' && initialData && onEdit) {
+      const editedService: Service = {
+        id: initialData.id,
+        name: formData.name,
+        price: parseFloat(formData.price),
+        description: formData.description,
+        category: formData.category,
+        code: formData.code
+      };
+      onEdit(editedService);
+    } else {
+      const newService = {
+        name: formData.name,
+        price: parseFloat(formData.price),
+        description: formData.description,
+        category: formData.category,
+        code: formData.code
+      };
+      onSave(newService);
+    }
     
     // Limpar formulário
     setFormData({
@@ -79,12 +110,25 @@ export default function NewService({
     onClose();
   };
 
+  // Limpar formulário quando o modal é fechado
+  useEffect(() => {
+    if (!visible) {
+      setFormData({
+        name: '',
+        price: '',
+        description: '',
+        category: '',
+        code: ''
+      });
+    }
+  }, [visible]);
+
   return (
     <Modal
       visible={visible}
       onClose={handleClose}
-      title="Novo Serviço"
-      icon={<Wrench size={24} color="#3B82F6" />}
+      title={mode === 'edit' ? 'Editar Serviço' : 'Novo Serviço'}
+      icon={mode === 'edit' ? <Edit size={24} color="#3B82F6" /> : <Wrench size={24} color="#3B82F6" />}
       saved={!loading}
       height={0.48}
       onSave={handleSave}
@@ -97,7 +141,7 @@ export default function NewService({
             className="flex-1"
           />
           <Button
-            title="Salvar"
+            title={mode === 'edit' ? 'Atualizar' : 'Salvar'}
             onPress={handleSave}
             loading={loading}
             className="flex-1"

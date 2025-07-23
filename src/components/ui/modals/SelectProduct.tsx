@@ -91,8 +91,8 @@ export default function SelectProduct({
       <Pressable
         onPress={() => toggleProductSelection(item)}
         disabled={isAlreadyInList}
-        className={`bg-gray-700 rounded-lg p-3 border border-gray-600 mb-2 ${
-          isSelected ? 'border-blue-500 bg-blue-900/20' : ''
+        className={`rounded-lg p-3 border mb-2 ${
+          isSelected ? 'border-blue-500 bg-blue-900/20' : 'bg-gray-700 border-gray-600'
         } ${
           isAlreadyInList ? 'opacity-50' : ''
         }`}

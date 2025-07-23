@@ -53,17 +53,24 @@ export default function AuthLayout() {
         }}
       />
       <Stack.Screen
+        name="view-order"
+        options={{
+          title: 'Visualizar Pedido',
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
         name="profile"
         options={{
           title: 'Perfil',
-          headerShown: true,
+          headerShown: false,
         }}
       />
       <Stack.Screen
         name="settings"
         options={{
           title: 'Configurações',
-          headerShown: true,
+          headerShown: false,
         }}
       />
     </Stack>

@@ -27,12 +27,17 @@ export default function Button({
   className
 }: Props) {
   const colors = useBaseColors();
-  const baseClass = "flex-row rounded-lg items-center justify-center gap-2 h-12 px-4 py-3 flex-shrink-0";
+  const baseClass = "flex-row rounded-lg items-center justify-center gap-2 flex-shrink-0";
 
   const buttonClass = clsx(
     baseClass,
     className,
     fullWidth && "flex-grow",
+    // Altura e padding padrão apenas se não for especificada na className
+    !className?.includes('h-') && "h-12 px-4 py-3",
+    // Para botões pequenos, ajustar padding
+    className?.includes('h-8') && "px-2 py-1",
+    className?.includes('h-10') && "px-3 py-2",
 
     // Estilo para botão ativo
     !disabled && {
@@ -55,7 +60,13 @@ export default function Button({
   );
 
   const textClass = clsx(
-    "text-base font-semibold",
+    "font-semibold",
+    // Tamanho do texto baseado na className
+    className?.includes('text-xs') && "text-xs",
+    className?.includes('text-sm') && "text-sm",
+    className?.includes('text-lg') && "text-lg",
+    // Tamanho padrão se não especificado
+    !className?.includes('text-') && "text-base",
 
     // Texto ativo
     !disabled && {

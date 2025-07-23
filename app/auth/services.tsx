@@ -31,6 +31,8 @@ export default function Services() {
   const [searchQuery, setSearchQuery] = useState('');
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
+  const [editingService, setEditingService] = useState<Service | undefined>(undefined);
   
   // Mock data
   const [services, setServices] = useState<Service[]>([
@@ -83,6 +85,8 @@ export default function Services() {
   );
 
   const handleAddService = () => {
+    setModalMode('create');
+    setEditingService(undefined);
     setIsModalVisible(true);
   };
 
@@ -103,9 +107,24 @@ export default function Services() {
     setIsModalVisible(false);
   };
 
+  const handleEditServiceSave = async (editedService: Service) => {
+    setIsLoading(true);
+    
+    // Simular delay de API
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    setServices(prev => prev.map(s => 
+      s.id === editedService.id ? editedService : s
+    ));
+    
+    setIsLoading(false);
+    setIsModalVisible(false);
+  };
+
   const handleEditService = (service: Service) => {
-    // Implementar edição
-    console.log('Editar serviço:', service);
+    setModalMode('edit');
+    setEditingService(service);
+    setIsModalVisible(true);
   };
 
   const handleDeleteService = (serviceId: string) => {
@@ -220,12 +239,15 @@ export default function Services() {
         </View>
       </View>
 
-      {/* Add Service Modal */}
+      {/* Add/Edit Service Modal */}
       <NewService
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
         onSave={handleSaveService}
+        onEdit={handleEditServiceSave}
         loading={isLoading}
+        mode={modalMode}
+        initialData={editingService}
       />
     </SafeAreaView>
   );
