@@ -5,7 +5,13 @@ import { useBaseColors } from "@/styles/theme";
 
 interface Props {
   title: string | React.ReactNode;
-  variant?: "primary" | "secondary" | "success" | "error" | "warning" | "outlined";
+  variant?:
+    | "primary"
+    | "secondary"
+    | "success"
+    | "error"
+    | "warning"
+    | "outlined";
   leftIcon?: React.ReactNode;
   rightIcon?: React.ReactNode;
   fullWidth?: boolean;
@@ -24,34 +30,29 @@ export default function Button({
   onPress,
   disabled = false,
   loading = false,
-  className
+  className,
 }: Props) {
   const colors = useBaseColors();
-  const baseClass = "flex-row rounded-lg items-center justify-center gap-2 flex-shrink-0";
+  const baseClass =
+    "flex-row rounded-lg items-center justify-center gap-2 flex-shrink-0";
 
   const buttonClass = clsx(
     baseClass,
     className,
     fullWidth && "flex-grow",
     // Altura e padding padrão apenas se não for especificada na className
-    !className?.includes('h-') && "h-12 px-4 py-3",
+    !className?.includes("h-") && "h-12 px-4 py-3",
     // Para botões pequenos, ajustar padding
-    className?.includes('h-8') && "px-2 py-1",
-    className?.includes('h-10') && "px-3 py-2",
+    className?.includes("h-8") && "px-2 py-1",
+    className?.includes("h-10") && "px-3 py-2",
 
     // Estilo para botão ativo
     !disabled && {
-      // Primary
       "bg-blue-500": variant === "primary",
-      // Secondary
       "bg-gray-800 border border-blue-500": variant === "secondary",
-      // Success
       "bg-green-500": variant === "success",
-      // Error
       "bg-red-500": variant === "error",
-      // Warning
       "bg-yellow-500": variant === "warning",
-      // Outlined
       "bg-transparent border border-blue-500": variant === "outlined",
     },
 
@@ -62,17 +63,17 @@ export default function Button({
   const textClass = clsx(
     "font-semibold",
     // Tamanho do texto baseado na className
-    className?.includes('text-xs') && "text-xs",
-    className?.includes('text-sm') && "text-sm",
-    className?.includes('text-lg') && "text-lg",
+    className?.includes("text-xs") && "text-xs",
+    className?.includes("text-sm") && "text-sm",
+    className?.includes("text-lg") && "text-lg",
     // Tamanho padrão se não especificado
-    !className?.includes('text-') && "text-base",
+    !className?.includes("text-") && "text-base",
 
     // Texto ativo
     !disabled && {
-      // Primary, Success, Error, Warning
-      "text-white": ["primary", "success", "error", "warning"].includes(variant),
-      // Secondary e Outlined
+      "text-white": ["primary", "success", "error", "warning"].includes(
+        variant
+      ),
       "text-blue-500": variant === "secondary" || variant === "outlined",
     },
 
@@ -94,11 +95,15 @@ export default function Button({
         </>
       )}
       {loading && (
-        <ActivityIndicator 
-          color={variant === 'outlined' || variant === 'secondary' ? colors.primary : colors.white} 
-          size="small" 
+        <ActivityIndicator
+          color={
+            variant === "outlined" || variant === "secondary"
+              ? colors.primary
+              : colors.white
+          }
+          size="small"
         />
       )}
     </Pressable>
   );
-} 
+}

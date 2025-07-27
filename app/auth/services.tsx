@@ -1,22 +1,21 @@
-import React, { useState } from 'react';
-import { View, ScrollView, Pressable, FlatList, SafeAreaView, Platform } from 'react-native';
-import { router } from 'expo-router';
-import Typography from '@/components/ui/Typography';
-import Button from '@/components/ui/Button';
-import Header from '@/components/ui/Header';
-import IconButton from '@/components/ui/IconButton';
-import Input from '@/components/ui/Input';
-import NewService from '@/components/ui/modals/NewService';
-import { 
-  ArrowLeft, 
-  Wrench, 
-  Plus, 
-  Search, 
-  Edit, 
+import React, { useState, useEffect } from "react";
+import { View, Pressable, FlatList, Platform } from "react-native";
+import { router } from "expo-router";
+import Typography from "@/components/ui/Typography";
+import Button from "@/components/ui/Button";
+import Header from "@/components/ui/Header";
+import IconButton from "@/components/ui/IconButton";
+import Input from "@/components/ui/Input";
+import NewService from "@/components/ui/modals/NewService";
+import ListSkeleton from "@/components/ui/loadingPages/listSkeleton";
+import {
+  ArrowLeft,
+  Wrench,
+  Plus,
+  Search,
+  Edit,
   Trash2,
-  DollarSign,
-  Tag
-} from 'lucide-react-native';
+} from "lucide-react-native";
 
 interface Service {
   id: string;
@@ -28,47 +27,59 @@ interface Service {
 }
 
 export default function Services() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
-  const [editingService, setEditingService] = useState<Service | undefined>(undefined);
-  
+  const [isPageLoading, setIsPageLoading] = useState(true);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [editingService, setEditingService] = useState<Service | undefined>(
+    undefined
+  );
+
   // Mock data
   const [services, setServices] = useState<Service[]>([
     {
-      id: '1',
-      name: 'Corte de Cabelo',
-      price: 25.00,
-      description: 'Corte de cabelo masculino',
-      category: 'Cabelo',
-      code: 'CC001'
+      id: "1",
+      name: "Corte de Cabelo",
+      price: 25.0,
+      description: "Corte de cabelo masculino",
+      category: "Cabelo",
+      code: "CC001",
     },
     {
-      id: '2',
-      name: 'Barba',
-      price: 15.00,
-      description: 'Barba tradicional',
-      category: 'Barba',
-      code: 'BB002'
+      id: "2",
+      name: "Barba",
+      price: 15.0,
+      description: "Barba tradicional",
+      category: "Barba",
+      code: "BB002",
     },
     {
-      id: '3',
-      name: 'Corte + Barba',
-      price: 35.00,
-      description: 'Corte de cabelo + barba',
-      category: 'Combo',
-      code: 'CB003'
+      id: "3",
+      name: "Corte + Barba",
+      price: 35.0,
+      description: "Corte de cabelo + barba",
+      category: "Combo",
+      code: "CB003",
     },
     {
-      id: '4',
-      name: 'Hidratação',
-      price: 45.00,
-      description: 'Hidratação capilar',
-      category: 'Tratamento',
-      code: 'HD004'
-    }
+      id: "4",
+      name: "Hidratação",
+      price: 45.0,
+      description: "Hidratação capilar",
+      category: "Tratamento",
+      code: "HD004",
+    },
   ]);
+
+  // Simular carregamento inicial da página
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleBack = () => {
     router.back();
@@ -78,57 +89,58 @@ export default function Services() {
     setSearchQuery(query);
   };
 
-  const filteredServices = services.filter(service =>
-    service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    service.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    service.category.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredServices = services.filter(
+    (service) =>
+      service.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      service.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      service.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleAddService = () => {
-    setModalMode('create');
+    setModalMode("create");
     setEditingService(undefined);
     setIsModalVisible(true);
   };
 
-  const handleSaveService = async (serviceData: Omit<Service, 'id'>) => {
+  const handleSaveService = async (serviceData: Omit<Service, "id">) => {
     setIsLoading(true);
-    
+
     // Simular delay de API
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const newService: Service = {
       id: Date.now().toString(),
-      ...serviceData
+      ...serviceData,
     };
 
-    setServices(prev => [newService, ...prev]);
-    
+    setServices((prev) => [newService, ...prev]);
+
     setIsLoading(false);
     setIsModalVisible(false);
   };
 
   const handleEditServiceSave = async (editedService: Service) => {
     setIsLoading(true);
-    
-    // Simular delay de API
-    await new Promise(resolve => setTimeout(resolve, 1000));
 
-    setServices(prev => prev.map(s => 
-      s.id === editedService.id ? editedService : s
-    ));
-    
+    // Simular delay de API
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    setServices((prev) =>
+      prev.map((s) => (s.id === editedService.id ? editedService : s))
+    );
+
     setIsLoading(false);
     setIsModalVisible(false);
   };
 
   const handleEditService = (service: Service) => {
-    setModalMode('edit');
+    setModalMode("edit");
     setEditingService(service);
     setIsModalVisible(true);
   };
 
   const handleDeleteService = (serviceId: string) => {
-    setServices(prev => prev.filter(s => s.id !== serviceId));
+    setServices((prev) => prev.filter((s) => s.id !== serviceId));
   };
 
   const renderServiceItem = ({ item }: { item: Service }) => (
@@ -149,14 +161,10 @@ export default function Services() {
         </View>
         <View className=" gap-6 flex-col justify-between">
           <View className="flex-row justify-end items-end gap-5 ">
-            <Pressable
-              onPress={() => handleEditService(item)}
-            >
+            <Pressable onPress={() => handleEditService(item)}>
               <Edit size={16} color="#4A90E2" />
             </Pressable>
-            <Pressable
-              onPress={() => handleDeleteService(item.id)}
-            >
+            <Pressable onPress={() => handleDeleteService(item.id)}>
               <Trash2 size={16} color="#ef4444" />
             </Pressable>
           </View>
@@ -170,9 +178,27 @@ export default function Services() {
     </View>
   );
 
+  // Renderizar skeleton durante carregamento
+  if (isPageLoading) {
+    return (
+      <View className="flex-1 bg-gray-900">
+        <Header
+          title="Serviços"
+          leftIcon={
+            <IconButton
+              icon={<ArrowLeft size={20} color="#F3F5F7" />}
+              onPress={handleBack}
+              variant="ghost"
+            />
+          }
+        />
+        <ListSkeleton itemCount={7} />
+      </View>
+    );
+  }
+
   return (
-    <SafeAreaView className="flex-1 bg-gray-900 pt-7 pb-6">
-      {/* Header */}
+    <View className="flex-1 bg-gray-900">
       <Header
         title="Serviços"
         leftIcon={
@@ -184,9 +210,9 @@ export default function Services() {
         }
       />
 
-      {/* Content */}
-      <View className={`flex-1 px-6 ${Platform.OS === 'ios' ? 'pt-6' : 'pt-4'}`}>
-        {/* Search */}
+      <View
+        className={`flex-1 px-6 ${Platform.OS === "ios" ? "pt-6" : "pt-4"}`}
+      >
         <View className="mb-6">
           <Input
             placeholder="Buscar serviços..."
@@ -197,7 +223,6 @@ export default function Services() {
           />
         </View>
 
-        {/* Novo Serviço Button */}
         <View className="mb-6">
           <Button
             title="Novo Serviço"
@@ -208,7 +233,6 @@ export default function Services() {
           />
         </View>
 
-        {/* Services List */}
         <View className="flex-1 mb-6">
           {filteredServices.length === 0 ? (
             <View className="flex-1 justify-center items-center">
@@ -217,7 +241,9 @@ export default function Services() {
                 Nenhum serviço encontrado
               </Typography>
               <Typography variant="body-secondary" className="text-center">
-                {searchQuery ? 'Tente ajustar sua busca' : 'Cadastre seu primeiro serviço'}
+                {searchQuery
+                  ? "Tente ajustar sua busca"
+                  : "Cadastre seu primeiro serviço"}
               </Typography>
               {!searchQuery && (
                 <Button
@@ -239,7 +265,6 @@ export default function Services() {
         </View>
       </View>
 
-      {/* Add/Edit Service Modal */}
       <NewService
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
@@ -249,6 +274,6 @@ export default function Services() {
         mode={modalMode}
         initialData={editingService}
       />
-    </SafeAreaView>
+    </View>
   );
-} 
+}

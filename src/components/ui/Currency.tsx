@@ -1,17 +1,10 @@
 import React, { useState } from "react";
-import {
-  TextInputProps,
-  View,
-  Pressable,
-  ActivityIndicator,
-  Text,
-} from "react-native";
+import { TextInputProps, View, ActivityIndicator, Text } from "react-native";
 import { MaskedTextInput } from "react-native-mask-text";
 import clsx from "clsx";
-import { Eye, EyeOff } from "lucide-react-native";
 import { useBaseColors } from "@/styles/theme";
 
-interface CurrencyProps extends Omit<TextInputProps, 'style' | 'onChangeText'> {
+interface CurrencyProps extends Omit<TextInputProps, "style" | "onChangeText"> {
   label?: string;
   error?: string;
   success?: boolean;
@@ -48,16 +41,15 @@ export default function Currency({
   labelClassName,
   errorClassName,
   secureTextEntry,
-  prefix = 'R$ ',
-  decimalSeparator = ',',
-  groupSeparator = '.',
+  prefix = "R$ ",
+  decimalSeparator = ",",
+  groupSeparator = ".",
   precision = 2,
   ...rest
 }: CurrencyProps) {
   const colors = useBaseColors();
   const [isFocused, setIsFocused] = useState(false);
 
-  // 🎨 Classes base
   const containerClass = clsx(
     "flex-col",
     fullWidth && "w-full",
@@ -73,19 +65,16 @@ export default function Currency({
   const inputContainerClass = clsx(
     "flex-row items-center rounded-xl border-2",
     {
-      // Tamanhos
       "h-10 px-3": size === "sm",
       "h-12 px-4": size === "md",
       "h-14 px-4": size === "lg",
     },
     {
-      // Variantes
       "bg-gray-800 border-gray-600": variant === "default",
       "bg-gray-900 border-gray-700": variant === "filled",
       "bg-transparent border-gray-600": variant === "outlined",
     },
     {
-      // Estados
       "border-blue-500 bg-gray-900": isFocused && !error,
       "border-red-500 bg-red-900/20": error,
       "border-green-500 bg-green-900/20": success && !error,
@@ -95,61 +84,43 @@ export default function Currency({
   const inputClass = clsx(
     "flex-1 text-white text-base",
     {
-      // Tamanhos do texto
       "text-sm": size === "sm",
       "text-base": size === "md",
       "text-lg": size === "lg",
     },
     {
-      // Padding baseado nos ícones
       "pl-0": !leftIcon,
-      "pl-12": leftIcon, // Espaçamento para o ícone esquerdo
+      "pl-12": leftIcon,
       "pr-0": !rightIcon && !secureTextEntry,
       "pr-12": rightIcon || secureTextEntry,
     },
     className
   );
 
-  const errorClass = clsx(
-    "text-sm text-red-500 mt-1",
-    errorClassName
-  );
+  const errorClass = clsx("text-sm text-red-500 mt-1", errorClassName);
 
-  const iconClass = clsx(
-    "absolute z-10",
-    {
-      "left-3": leftIcon,
-      "right-3": rightIcon || secureTextEntry,
-    }
-  );
+  const iconClass = clsx("absolute z-10", {
+    "left-3": leftIcon,
+    "right-3": rightIcon || secureTextEntry,
+  });
 
   return (
     <View className={containerClass}>
-      {/* Label */}
-      {label && (
-        <Text className={labelClass}>
-          {label}
-        </Text>
-      )}
+      {label && <Text className={labelClass}>{label}</Text>}
 
-      {/* Container do Input */}
       <View className={inputContainerClass}>
-        {/* Ícone Esquerdo */}
         {leftIcon && (
-          <View className={clsx(iconClass, "left-3")}>
-            {leftIcon}
-          </View>
+          <View className={clsx(iconClass, "left-3")}>{leftIcon}</View>
         )}
 
-        {/* Input de Moeda */}
         <MaskedTextInput
           className={inputClass}
-          style={{ 
-            flex: 1, 
-            width: '100%',
-            paddingLeft: leftIcon ? 48 : 16, // 48px = 12 * 4 (pl-12)
-            paddingRight: (rightIcon || secureTextEntry) ? 48 : 16, // 48px = 12 * 4 (pr-12)
-            color: '#ffffff', // Garante que o texto digitado seja branco
+          style={{
+            flex: 1,
+            width: "100%",
+            paddingLeft: leftIcon ? 48 : 16,
+            paddingRight: rightIcon || secureTextEntry ? 48 : 16,
+            color: "#ffffff",
           }}
           placeholderTextColor="#6b7280"
           onFocus={() => setIsFocused(true)}
@@ -170,7 +141,6 @@ export default function Currency({
           {...rest}
         />
 
-        {/* Loading */}
         {loading && (
           <View className={clsx(iconClass, "right-3")}>
             <ActivityIndicator size="small" color={colors.primary} />
@@ -178,12 +148,7 @@ export default function Currency({
         )}
       </View>
 
-      {/* Mensagem de Erro */}
-      {error && (
-        <Text className={errorClass}>
-          {error}
-        </Text>
-      )}
+      {error && <Text className={errorClass}>{error}</Text>}
     </View>
   );
-} 
+}

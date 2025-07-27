@@ -1,22 +1,21 @@
-import React, { useState } from 'react';
-import { View, ScrollView, Pressable, FlatList, SafeAreaView, Platform } from 'react-native';
-import { router } from 'expo-router';
-import Typography from '@/components/ui/Typography';
-import Button from '@/components/ui/Button';
-import Header from '@/components/ui/Header';
-import IconButton from '@/components/ui/IconButton';
-import Input from '@/components/ui/Input';
-import NewProduct from '@/components/ui/modals/NewProduct';
-import { 
-  ArrowLeft, 
-  Package, 
-  Plus, 
-  Search, 
-  Edit, 
+import React, { useState, useEffect } from "react";
+import { View, Pressable, FlatList, Platform } from "react-native";
+import { router } from "expo-router";
+import Typography from "@/components/ui/Typography";
+import Button from "@/components/ui/Button";
+import Header from "@/components/ui/Header";
+import IconButton from "@/components/ui/IconButton";
+import Input from "@/components/ui/Input";
+import NewProduct from "@/components/ui/modals/NewProduct";
+import ListSkeleton from "@/components/ui/loadingPages/listSkeleton";
+import {
+  ArrowLeft,
+  Package,
+  Plus,
+  Search,
+  Edit,
   Trash2,
-  DollarSign,
-  Tag
-} from 'lucide-react-native';
+} from "lucide-react-native";
 
 interface Product {
   id: string;
@@ -28,49 +27,59 @@ interface Product {
 }
 
 export default function Products() {
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [modalMode, setModalMode] = useState<'create' | 'edit'>('create');
-  const [editingProduct, setEditingProduct] = useState<Product | undefined>(undefined);
-  
+  const [isPageLoading, setIsPageLoading] = useState(true);
+  const [modalMode, setModalMode] = useState<"create" | "edit">("create");
+  const [editingProduct, setEditingProduct] = useState<Product | undefined>(
+    undefined
+  );
+
   // Mock data
   const [products, setProducts] = useState<Product[]>([
     {
-      id: '1',
-      name: 'Pão Francês',
-      price: 0.50,
-      description: 'Pão francês tradicional',
-      category: 'Pães',
-      code: 'PF001'
+      id: "1",
+      name: "Pão Francês",
+      price: 0.5,
+      description: "Pão francês tradicional",
+      category: "Pães",
+      code: "PF001",
     },
     {
-      id: '2',
-      name: 'Pão de Queijo',
-      price: 2.50,
-      description: 'Pão de queijo caseiro',
-      category: 'Pães',
-      code: 'PQ002'
+      id: "2",
+      name: "Pão de Queijo",
+      price: 2.5,
+      description: "Pão de queijo caseiro",
+      category: "Pães",
+      code: "PQ002",
     },
     {
-      id: '3',
-      name: 'Bolo de Chocolate',
-      price: 15.00,
-      description: 'Bolo de chocolate artesanal',
-      category: 'Bolos',
-      code: 'BC003'
+      id: "3",
+      name: "Bolo de Chocolate",
+      price: 15.0,
+      description: "Bolo de chocolate artesanal",
+      category: "Bolos",
+      code: "BC003",
     },
     {
-      id: '4',
-      name: 'Croissant',
-      price: 4.50,
-      description: 'Croissant de manteiga',
-      category: 'Pães',
-      code: 'CR004'
-    }
+      id: "4",
+      name: "Croissant",
+      price: 4.5,
+      description: "Croissant de manteiga",
+      category: "Pães",
+      code: "CR004",
+    },
   ]);
 
+  // Simular carregamento inicial da página
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 2000);
 
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleBack = () => {
     router.back();
@@ -80,57 +89,58 @@ export default function Products() {
     setSearchQuery(query);
   };
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    product.category.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredProducts = products.filter(
+    (product) =>
+      product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.category.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleAddProduct = () => {
-    setModalMode('create');
+    setModalMode("create");
     setEditingProduct(undefined);
     setIsModalVisible(true);
   };
 
-  const handleSaveProduct = async (productData: Omit<Product, 'id'>) => {
+  const handleSaveProduct = async (productData: Omit<Product, "id">) => {
     setIsLoading(true);
-    
+
     // Simular delay de API
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const newProduct: Product = {
       id: Date.now().toString(),
-      ...productData
+      ...productData,
     };
 
-    setProducts(prev => [newProduct, ...prev]);
-    
+    setProducts((prev) => [newProduct, ...prev]);
+
     setIsLoading(false);
     setIsModalVisible(false);
   };
 
   const handleEditProductSave = async (editedProduct: Product) => {
     setIsLoading(true);
-    
-    // Simular delay de API
-    await new Promise(resolve => setTimeout(resolve, 1000));
 
-    setProducts(prev => prev.map(p => 
-      p.id === editedProduct.id ? editedProduct : p
-    ));
-    
+    // Simular delay de API
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    setProducts((prev) =>
+      prev.map((p) => (p.id === editedProduct.id ? editedProduct : p))
+    );
+
     setIsLoading(false);
     setIsModalVisible(false);
   };
 
   const handleEditProduct = (product: Product) => {
-    setModalMode('edit');
+    setModalMode("edit");
     setEditingProduct(product);
     setIsModalVisible(true);
   };
 
   const handleDeleteProduct = (productId: string) => {
-    setProducts(prev => prev.filter(p => p.id !== productId));
+    setProducts((prev) => prev.filter((p) => p.id !== productId));
   };
 
   const renderProductItem = ({ item }: { item: Product }) => (
@@ -151,14 +161,10 @@ export default function Products() {
         </View>
         <View className=" gap-6 flex-col justify-between">
           <View className="flex-row justify-end items-end gap-5 ">
-            <Pressable
-              onPress={() => handleEditProduct(item)}
-            >
+            <Pressable onPress={() => handleEditProduct(item)}>
               <Edit size={16} color="#4A90E2" />
             </Pressable>
-            <Pressable
-              onPress={() => handleDeleteProduct(item.id)}
-            >
+            <Pressable onPress={() => handleDeleteProduct(item.id)}>
               <Trash2 size={16} color="#ef4444" />
             </Pressable>
           </View>
@@ -172,9 +178,27 @@ export default function Products() {
     </View>
   );
 
+  // Renderizar skeleton durante carregamento
+  if (isPageLoading) {
+    return (
+      <View className="flex-1 bg-gray-900">
+        <Header
+          title="Produtos"
+          leftIcon={
+            <IconButton
+              icon={<ArrowLeft size={20} color="#F3F5F7" />}
+              onPress={handleBack}
+              variant="ghost"
+            />
+          }
+        />
+        <ListSkeleton itemCount={7} />
+      </View>
+    );
+  }
+
   return (
-    <SafeAreaView className="flex-1 bg-gray-900 pt-7 pb-6">
-      {/* Header */}
+    <View className="flex-1 bg-gray-900">
       <Header
         title="Produtos"
         leftIcon={
@@ -186,9 +210,9 @@ export default function Products() {
         }
       />
 
-      {/* Content */}
-      <View className={`flex-1 px-6 ${Platform.OS === 'ios' ? 'pt-6' : 'pt-4'}`}>
-        {/* Search */}
+      <View
+        className={`flex-1 px-6 ${Platform.OS === "ios" ? "pt-6" : "pt-4"}`}
+      >
         <View className="mb-6">
           <Input
             placeholder="Buscar produtos..."
@@ -199,7 +223,6 @@ export default function Products() {
           />
         </View>
 
-        {/* Novo Produto Button */}
         <View className="mb-6">
           <Button
             title="Novo Produto"
@@ -209,8 +232,6 @@ export default function Products() {
             fullWidth
           />
         </View>
-
-        {/* Products List */}
         <View className="flex-1 mb-6">
           {filteredProducts.length === 0 ? (
             <View className="flex-1 justify-center items-center">
@@ -219,7 +240,9 @@ export default function Products() {
                 Nenhum produto encontrado
               </Typography>
               <Typography variant="body-secondary" className="text-center">
-                {searchQuery ? 'Tente ajustar sua busca' : 'Cadastre seu primeiro produto'}
+                {searchQuery
+                  ? "Tente ajustar sua busca"
+                  : "Cadastre seu primeiro produto"}
               </Typography>
               {!searchQuery && (
                 <Button
@@ -241,7 +264,6 @@ export default function Products() {
         </View>
       </View>
 
-      {/* Add/Edit Product Modal */}
       <NewProduct
         visible={isModalVisible}
         onClose={() => setIsModalVisible(false)}
@@ -251,6 +273,6 @@ export default function Products() {
         mode={modalMode}
         initialData={editingProduct}
       />
-    </SafeAreaView>
+    </View>
   );
-} 
+}

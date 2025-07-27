@@ -1,21 +1,21 @@
-import React, { useState } from 'react';
-import { View, ScrollView, Pressable, FlatList, SafeAreaView, Platform } from 'react-native';
-import { router } from 'expo-router';
-import Typography from '@/components/ui/Typography';
-import Button from '@/components/ui/Button';
-import Header from '@/components/ui/Header';
-import IconButton from '@/components/ui/IconButton';
-import Input from '@/components/ui/Input';
-import { 
-  ArrowLeft, 
-  FileText, 
-  Search, 
-  Eye, 
+import React, { useState, useEffect } from "react";
+import { View, ScrollView, Pressable, FlatList, Platform } from "react-native";
+import { router } from "expo-router";
+import Typography from "@/components/ui/Typography";
+import Header from "@/components/ui/Header";
+import IconButton from "@/components/ui/IconButton";
+import Input from "@/components/ui/Input";
+import OrdersSkeleton from "@/components/ui/loadingPages/ordersSkeleton";
+import {
+  ArrowLeft,
+  FileText,
+  Search,
+  Eye,
   Trash2,
   User,
   Calendar,
-  DollarSign
-} from 'lucide-react-native';
+  DollarSign,
+} from "lucide-react-native";
 
 interface Order {
   id: string;
@@ -26,70 +26,80 @@ interface Order {
     companyName: string;
   };
   createdAt: string;
-  status: 'pending' | 'completed' | 'cancelled';
+  status: "pending" | "completed" | "cancelled";
 }
 
 export default function Orders() {
-  const [searchQuery, setSearchQuery] = useState('');
-  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isPageLoading, setIsPageLoading] = useState(true);
+
   // Mock data
   const [orders, setOrders] = useState<Order[]>([
     {
-      id: '1',
-      orderNumber: 'PED-001',
-      total: 1250.50,
+      id: "1",
+      orderNumber: "PED-001",
+      total: 1250.5,
       customer: {
-        name: 'Empresa ABC Ltda',
-        companyName: 'Empresa ABC Comércio Ltda'
+        name: "Empresa ABC Ltda",
+        companyName: "Empresa ABC Comércio Ltda",
       },
-      createdAt: '2024-01-15T10:30:00Z',
-      status: 'completed'
+      createdAt: "2024-01-15T10:30:00Z",
+      status: "completed",
     },
     {
-      id: '2',
-      orderNumber: 'PED-002',
+      id: "2",
+      orderNumber: "PED-002",
       total: 890.75,
       customer: {
-        name: 'Tech Solutions',
-        companyName: 'Tech Solutions Tecnologia Ltda'
+        name: "Tech Solutions",
+        companyName: "Tech Solutions Tecnologia Ltda",
       },
-      createdAt: '2024-01-14T14:20:00Z',
-      status: 'pending'
+      createdAt: "2024-01-14T14:20:00Z",
+      status: "pending",
     },
     {
-      id: '3',
-      orderNumber: 'PED-003',
-      total: 2150.00,
+      id: "3",
+      orderNumber: "PED-003",
+      total: 2150.0,
       customer: {
-        name: 'Construções XYZ',
-        companyName: 'Construções XYZ Ltda'
+        name: "Construções XYZ",
+        companyName: "Construções XYZ Ltda",
       },
-      createdAt: '2024-01-13T09:15:00Z',
-      status: 'completed'
+      createdAt: "2024-01-13T09:15:00Z",
+      status: "completed",
     },
     {
-      id: '4',
-      orderNumber: 'PED-004',
+      id: "4",
+      orderNumber: "PED-004",
       total: 675.25,
       customer: {
-        name: 'Distribuidora 123',
-        companyName: 'Distribuidora 123 Comércio Ltda'
+        name: "Distribuidora 123",
+        companyName: "Distribuidora 123 Comércio Ltda",
       },
-      createdAt: '2024-01-12T16:45:00Z',
-      status: 'cancelled'
+      createdAt: "2024-01-12T16:45:00Z",
+      status: "cancelled",
     },
     {
-      id: '5',
-      orderNumber: 'PED-005',
-      total: 1890.30,
+      id: "5",
+      orderNumber: "PED-005",
+      total: 1890.3,
       customer: {
-        name: 'Empresa ABC Ltda',
-        companyName: 'Empresa ABC Comércio Ltda'
+        name: "Empresa ABC Ltda",
+        companyName: "Empresa ABC Comércio Ltda",
       },
-      createdAt: '2024-01-11T11:30:00Z',
-      status: 'pending'
-    }
+      createdAt: "2024-01-11T11:30:00Z",
+      status: "pending",
+    },
   ]);
+
+  // Simular carregamento inicial da página
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleBack = () => {
     router.back();
@@ -99,10 +109,13 @@ export default function Orders() {
     setSearchQuery(query);
   };
 
-  const filteredOrders = orders.filter(order =>
-    order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    order.customer.companyName.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredOrders = orders.filter(
+    (order) =>
+      order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.customer.companyName
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase())
   );
 
   const handleViewOrder = (order: Order) => {
@@ -111,43 +124,43 @@ export default function Orders() {
   };
 
   const handleDeleteOrder = (orderId: string) => {
-    setOrders(prev => prev.filter(o => o.id !== orderId));
+    setOrders((prev) => prev.filter((o) => o.id !== orderId));
   };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('pt-BR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return date.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'completed':
-        return '#10B981';
-      case 'pending':
-        return '#F59E0B';
-      case 'cancelled':
-        return '#EF4444';
+      case "completed":
+        return "#10B981";
+      case "pending":
+        return "#F59E0B";
+      case "cancelled":
+        return "#EF4444";
       default:
-        return '#6B7280';
+        return "#6B7280";
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'completed':
-        return 'Concluído';
-      case 'pending':
-        return 'Pendente';
-      case 'cancelled':
-        return 'Cancelado';
+      case "completed":
+        return "Concluído";
+      case "pending":
+        return "Pendente";
+      case "cancelled":
+        return "Cancelado";
       default:
-        return 'Desconhecido';
+        return "Desconhecido";
     }
   };
 
@@ -159,12 +172,12 @@ export default function Orders() {
             <Typography variant="h3" className="text-white">
               {item.orderNumber}
             </Typography>
-            <View 
+            <View
               className="px-2 py-1 rounded-full"
-              style={{ backgroundColor: getStatusColor(item.status) + '20' }}
+              style={{ backgroundColor: getStatusColor(item.status) + "20" }}
             >
-              <Typography 
-                variant="caption" 
+              <Typography
+                variant="caption"
                 size="xs"
                 style={{ color: getStatusColor(item.status) }}
               >
@@ -189,20 +202,16 @@ export default function Orders() {
         </View>
         <View className="flex-col justify-between items-end gap-4">
           <View className="flex-row justify-end items-end gap-3">
-            <Pressable
-              onPress={() => handleViewOrder(item)}
-            >
+            <Pressable onPress={() => handleViewOrder(item)}>
               <Eye size={16} color="#4A90E2" />
             </Pressable>
-            <Pressable
-              onPress={() => handleDeleteOrder(item.id)}
-            >
+            <Pressable onPress={() => handleDeleteOrder(item.id)}>
               <Trash2 size={16} color="#ef4444" />
             </Pressable>
           </View>
           <View className="items-end">
             <Typography variant="h3" className="text-green-500 font-bold">
-              R$ {item.total.toFixed(2).replace('.', ',')}
+              R$ {item.total.toFixed(2).replace(".", ",")}
             </Typography>
           </View>
         </View>
@@ -210,9 +219,27 @@ export default function Orders() {
     </View>
   );
 
+  // Renderizar skeleton durante carregamento
+  if (isPageLoading) {
+    return (
+      <View className="flex-1 bg-gray-900">
+        <Header
+          title="Pedidos"
+          leftIcon={
+            <IconButton
+              icon={<ArrowLeft size={20} color="#F3F5F7" />}
+              onPress={handleBack}
+              variant="ghost"
+            />
+          }
+        />
+        <OrdersSkeleton itemCount={5} />
+      </View>
+    );
+  }
+
   return (
-    <SafeAreaView className="flex-1 bg-gray-900 pt-7 pb-6">
-      {/* Header */}
+    <View className="flex-1 bg-gray-900 ">
       <Header
         title="Pedidos"
         leftIcon={
@@ -224,9 +251,9 @@ export default function Orders() {
         }
       />
 
-      {/* Content */}
-      <View className={`flex-1 px-6 ${Platform.OS === 'ios' ? 'pt-6' : 'pt-4'}`}>
-        {/* Search */}
+      <View
+        className={`flex-1 px-6 ${Platform.OS === "ios" ? "pt-6" : "pt-4"}`}
+      >
         <View className="mb-6">
           <Input
             placeholder="Buscar pedidos..."
@@ -237,7 +264,6 @@ export default function Orders() {
           />
         </View>
 
-        {/* Orders List */}
         <View className="flex-1 mb-6">
           {filteredOrders.length === 0 ? (
             <View className="flex-1 justify-center items-center">
@@ -246,7 +272,9 @@ export default function Orders() {
                 Nenhum pedido encontrado
               </Typography>
               <Typography variant="body-secondary" className="text-center">
-                {searchQuery ? 'Tente ajustar sua busca' : 'Nenhum pedido foi criado ainda'}
+                {searchQuery
+                  ? "Tente ajustar sua busca"
+                  : "Nenhum pedido foi criado ainda"}
               </Typography>
             </View>
           ) : (
@@ -260,6 +288,6 @@ export default function Orders() {
           )}
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
-} 
+}

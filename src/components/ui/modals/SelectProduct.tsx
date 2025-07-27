@@ -1,15 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { View, FlatList, Pressable } from 'react-native';
-import Button from '@/components/ui/Button';
-import Input from '@/components/ui/Input';
-import ModalFlatList from './ModalFlatList';
-import Typography from '@/components/ui/Typography';
-import { 
-  Package, 
-  Search,
-  CheckCircle,
-  Circle
-} from 'lucide-react-native';
+import React, { useState, useMemo } from "react";
+import { View, FlatList, Pressable } from "react-native";
+import Button from "@/components/ui/Button";
+import Input from "@/components/ui/Input";
+import ModalFlatList from "./ModalFlatList";
+import Typography from "@/components/ui/Typography";
+import { Package, Search, CheckCircle, Circle } from "lucide-react-native";
 
 interface Product {
   id: number;
@@ -28,39 +23,96 @@ interface SelectProductProps {
   existingProductIds?: number[];
 }
 
-export default function SelectProduct({ 
-  visible, 
-  onClose, 
-  onSave, 
+export default function SelectProduct({
+  visible,
+  onClose,
+  onSave,
   loading = false,
-  existingProductIds = []
+  existingProductIds = [],
 }: SelectProductProps) {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
 
   // Dados mockados de produtos
   const products: Product[] = [
-    { id: 1, name: 'Pão Francês', code: 'PF001', description: 'Pão francês tradicional', price: 0.50, unit: 'Unidade' },
-    { id: 2, name: 'Pão de Queijo', code: 'PQ002', description: 'Pão de queijo caseiro', price: 15.00, unit: 'Quilo' },
-    { id: 3, name: 'Croissant', code: 'CR003', description: 'Croissant de manteiga', price: 2.50, unit: 'Unidade' },
-    { id: 4, name: 'Baguete', code: 'BG004', description: 'Baguete francesa', price: 1.80, unit: 'Unidade' },
-    { id: 5, name: 'Pão Integral', code: 'PI005', description: 'Pão integral saudável', price: 12.00, unit: 'Quilo' },
-    { id: 6, name: 'Bolo de Chocolate', code: 'BC006', description: 'Bolo de chocolate caseiro', price: 25.00, unit: 'Unidade' },
-    { id: 7, name: 'Torta de Frango', code: 'TF007', description: 'Torta de frango com catupiry', price: 18.00, unit: 'Unidade' },
-    { id: 8, name: 'Sonho', code: 'SN008', description: 'Sonho recheado com creme', price: 3.50, unit: 'Unidade' }
+    {
+      id: 1,
+      name: "Pão Francês",
+      code: "PF001",
+      description: "Pão francês tradicional",
+      price: 0.5,
+      unit: "Unidade",
+    },
+    {
+      id: 2,
+      name: "Pão de Queijo",
+      code: "PQ002",
+      description: "Pão de queijo caseiro",
+      price: 15.0,
+      unit: "Quilo",
+    },
+    {
+      id: 3,
+      name: "Croissant",
+      code: "CR003",
+      description: "Croissant de manteiga",
+      price: 2.5,
+      unit: "Unidade",
+    },
+    {
+      id: 4,
+      name: "Baguete",
+      code: "BG004",
+      description: "Baguete francesa",
+      price: 1.8,
+      unit: "Unidade",
+    },
+    {
+      id: 5,
+      name: "Pão Integral",
+      code: "PI005",
+      description: "Pão integral saudável",
+      price: 12.0,
+      unit: "Quilo",
+    },
+    {
+      id: 6,
+      name: "Bolo de Chocolate",
+      code: "BC006",
+      description: "Bolo de chocolate caseiro",
+      price: 25.0,
+      unit: "Unidade",
+    },
+    {
+      id: 7,
+      name: "Torta de Frango",
+      code: "TF007",
+      description: "Torta de frango com catupiry",
+      price: 18.0,
+      unit: "Unidade",
+    },
+    {
+      id: 8,
+      name: "Sonho",
+      code: "SN008",
+      description: "Sonho recheado com creme",
+      price: 3.5,
+      unit: "Unidade",
+    },
   ];
 
   // Filtrar produtos baseado na busca
   const filteredProducts = useMemo(() => {
-    return products.filter(product => 
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.code.toLowerCase().includes(searchTerm.toLowerCase())
+    return products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        product.code.toLowerCase().includes(searchTerm.toLowerCase())
     );
   }, [searchTerm]);
 
   // Verificar se produto está selecionado
   const isProductSelected = (product: Product) => {
-    return selectedProducts.some(p => p.id === product.id);
+    return selectedProducts.some((p) => p.id === product.id);
   };
 
   // Verificar se produto já existe na lista principal
@@ -76,9 +128,9 @@ export default function SelectProduct({
     }
 
     if (isProductSelected(product)) {
-      setSelectedProducts(prev => prev.filter(p => p.id !== product.id));
+      setSelectedProducts((prev) => prev.filter((p) => p.id !== product.id));
     } else {
-      setSelectedProducts(prev => [...prev, product]);
+      setSelectedProducts((prev) => [...prev, product]);
     }
   };
 
@@ -86,16 +138,16 @@ export default function SelectProduct({
   const renderProductItem = ({ item }: { item: Product }) => {
     const isSelected = isProductSelected(item);
     const isAlreadyInList = isProductAlreadyInList(item);
-    
+
     return (
       <Pressable
         onPress={() => toggleProductSelection(item)}
         disabled={isAlreadyInList}
         className={`rounded-lg p-3 border mb-2 ${
-          isSelected ? 'border-blue-500 bg-blue-900/20' : 'bg-gray-700 border-gray-600'
-        } ${
-          isAlreadyInList ? 'opacity-50' : ''
-        }`}
+          isSelected
+            ? "border-blue-500 bg-blue-900/20"
+            : "bg-gray-700 border-gray-600"
+        } ${isAlreadyInList ? "opacity-50" : ""}`}
       >
         <View className="flex-row items-center justify-between">
           <View className="flex-1">
@@ -109,13 +161,21 @@ export default function SelectProduct({
                 {item.code} - {item.name}
               </Typography>
             </View>
-            <Typography variant="caption" size="xs" className="text-gray-400 ml-6">
+            <Typography
+              variant="caption"
+              size="xs"
+              className="text-gray-400 ml-6"
+            >
               {item.description}
             </Typography>
           </View>
           <View className="items-end">
-            <Typography variant="body" size="sm" className="text-emerald-500 font-semibold">
-              R$ {item.price.toFixed(2).replace('.', ',')}
+            <Typography
+              variant="body"
+              size="sm"
+              className="text-emerald-500 font-semibold"
+            >
+              R$ {item.price.toFixed(2).replace(".", ",")}
             </Typography>
             <Typography variant="caption" size="xs" className="text-gray-400">
               {item.unit}
@@ -129,12 +189,12 @@ export default function SelectProduct({
   const handleSave = () => {
     onSave(selectedProducts);
     setSelectedProducts([]);
-    setSearchTerm('');
+    setSearchTerm("");
   };
 
   const handleClose = () => {
     setSelectedProducts([]);
-    setSearchTerm('');
+    setSearchTerm("");
     onClose();
   };
 
@@ -166,8 +226,7 @@ export default function SelectProduct({
       }
     >
       <View className="flex-1 gap-4">
-        {/* Campo de busca */}
-        <View >
+        <View>
           <Input
             placeholder="Buscar produtos..."
             leftIcon={<Search size={20} color="#6b7280" />}
@@ -177,7 +236,6 @@ export default function SelectProduct({
           />
         </View>
 
-        {/* Lista de produtos */}
         <FlatList
           data={filteredProducts}
           renderItem={renderProductItem}
@@ -186,10 +244,13 @@ export default function SelectProduct({
           className="flex-1"
         />
 
-        {/* Contador de selecionados */}
         {selectedProducts.length > 0 && (
           <View className="bg-blue-900/20 border border-blue-500 rounded-lg p-3">
-            <Typography variant="body" size="sm" className="text-blue-400 text-center">
+            <Typography
+              variant="body"
+              size="sm"
+              className="text-blue-400 text-center"
+            >
               {selectedProducts.length} produto(s) selecionado(s)
             </Typography>
           </View>
@@ -197,4 +258,4 @@ export default function SelectProduct({
       </View>
     </ModalFlatList>
   );
-} 
+}

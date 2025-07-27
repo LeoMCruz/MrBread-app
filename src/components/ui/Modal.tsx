@@ -5,15 +5,14 @@ import {
   Animated,
   Dimensions,
   TouchableWithoutFeedback,
-  StatusBar,
   ScrollView,
 } from "react-native";
 import { useBaseColors } from "@/styles/theme";
 import Typography from "./Typography";
-import { Check, X } from "lucide-react-native";
+import { X } from "lucide-react-native";
 import IconButton from "./IconButton";
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const { height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface ModalProps {
   visible: boolean;
@@ -31,7 +30,7 @@ interface ModalProps {
   headerActions?: React.ReactNode;
   maxWidth?: number;
   maxHeight?: number;
-  height?: number; 
+  height?: number;
 }
 
 export default function Modal({
@@ -99,21 +98,19 @@ export default function Modal({
       animationType="none"
       statusBarTranslucent
     >
-      {/* Overlay preta semi-transparente */}
       <TouchableWithoutFeedback onPress={handleClose}>
         <View style={{ flex: 1, backgroundColor: "black", opacity: 0.8 }} />
       </TouchableWithoutFeedback>
 
-      {/* Modal centralizado */}
       <Animated.View
         style={{
-          position: 'absolute',
+          position: "absolute",
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          justifyContent: 'center',
-          alignItems: 'center',
+          justifyContent: "center",
+          alignItems: "center",
           opacity: opacity,
         }}
       >
@@ -121,14 +118,13 @@ export default function Modal({
           style={{
             transform: [{ scale }],
             maxHeight: height ? SCREEN_HEIGHT * height : maxHeight,
-            width: '90%',
+            width: "90%",
             backgroundColor: colors.background,
             borderRadius: 16,
-            overflow: 'hidden',
+            overflow: "hidden",
             flex: 1,
           }}
         >
-          {/* Header */}
           {showHeader && (
             <View className="flex-row items-center h-[72px] px-4 border-b border-gray-700">
               <View className="flex-row items-center gap-3 flex-grow">
@@ -157,11 +153,10 @@ export default function Modal({
             </View>
           )}
 
-          {/* Content */}
-          <ScrollView 
+          <ScrollView
             showsVerticalScrollIndicator={false}
             className="flex-1"
-            contentContainerStyle={{ 
+            contentContainerStyle={{
               padding: 16,
               flexGrow: 1,
             }}
@@ -169,17 +164,15 @@ export default function Modal({
             {children}
           </ScrollView>
 
-          {/* Footer */}
           {footer && (
             <View className="flex-row gap-2 p-4 border-t border-gray-700">
               {footer}
             </View>
           )}
 
-          {/* Loading */}
           {loading && loading}
         </Animated.View>
       </Animated.View>
     </RNModal>
   );
-} 
+}

@@ -32,7 +32,8 @@ export default function IconButton({
     {
       // Variantes
       "bg-gray-800": variant === "default" && !disabled,
-      "bg-transparent border border-gray-600": variant === "outlined" && !disabled,
+      "bg-transparent border border-gray-600":
+        variant === "outlined" && !disabled,
       "bg-transparent": variant === "ghost" && !disabled,
       "bg-gray-700 opacity-50": disabled,
     },
@@ -46,9 +47,7 @@ export default function IconButton({
       hitSlop={{ top: hitSlop, bottom: hitSlop, left: hitSlop, right: hitSlop }}
       disabled={disabled}
     >
-      <View className="items-center justify-center">
-        {icon}
-      </View>
+      <View className="items-center justify-center">{icon}</View>
     </Pressable>
   );
-} 
+}

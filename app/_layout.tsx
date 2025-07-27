@@ -1,50 +1,25 @@
 import '../global.css';
-import { Stack, router } from 'expo-router';
-import { View, ActivityIndicator, StatusBar, Platform } from 'react-native';
+import { Slot } from 'expo-router';
+import { StatusBar } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
-import { useEffect } from 'react';
+import HomeSkeleton from '@/components/ui/loadingPages/homeSkeleton';
 
 export default function RootLayout() {
-  const { isAuthenticated, isLoading } = useAuthStore();
-  
-  console.log('RootLayout - isAuthenticated:', isAuthenticated, 'isLoading:', isLoading);
-  
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (isAuthenticated) {
-        router.replace('/auth/home');
-      } else {
-        router.replace('/public/login');
-      }
-    }, 0);
-    
-    return () => clearTimeout(timer);
-  }, [isAuthenticated]);
+  const { isLoading } = useAuthStore();
   
   if (isLoading) {
-    return (
-      <View className="flex-1 justify-center items-center bg-gray-900">
-        <ActivityIndicator size="large" color="#F3F5F7" />
-      </View>
-    );
+    return <HomeSkeleton />;
   }
   
   return (
-    <View className="flex-1 font-sans">
+    <SafeAreaView className="flex-1 bg-gray-900 font-sans">
       <StatusBar 
         barStyle="light-content" 
         backgroundColor="#111827"
         translucent={false}
       />
-      <Stack screenOptions={{ headerShown: false }}>
-        {isAuthenticated ? (
-          // Rotas autenticadas
-          <Stack.Screen name="auth" />
-        ) : (
-          // Rotas públicas
-          <Stack.Screen name="public" />
-        )}
-      </Stack>
-    </View>
+      <Slot />
+    </SafeAreaView>
   );
 } 

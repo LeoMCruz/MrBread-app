@@ -2,13 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Configurar fonte sans como padrão para todo o app */
 @layer base {
   * {
     font-family: 'System', 'Helvetica', 'Arial', sans-serif;
   }
   
-  /* Para React Native, aplicar fonte sans em todos os elementos de texto */
   .font-sans {
     font-family: 'System', 'Helvetica', 'Arial', sans-serif;
   }

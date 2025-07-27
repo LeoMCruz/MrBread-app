@@ -168,8 +168,7 @@ export default function Settings() {
   ];
 
   return (
-    <View className="flex-1 bg-gray-900 pt-7 pb-6">
-      {/* Header */}
+    <View className="flex-1 bg-gray-900 ">
       <Header
         title="Configurações"
         leftIcon={
@@ -177,12 +176,11 @@ export default function Settings() {
             onPress={() => router.back()}
             className="p-1.5 rounded-lg hover:bg-gray-700"
           >
-            <ArrowLeft size={20} color="#9ca3af" />
+            <ArrowLeft size={20} color="#F3F5F7" />
           </Pressable>
         }
       />
 
-      {/* Content */}
       <ScrollView
         className={`flex-1 px-6 mb-6 ${
           Platform.OS === "ios" ? "pt-6" : "pt-4"
@@ -194,7 +192,6 @@ export default function Settings() {
               key={section.id}
               className="bg-gray-800 rounded-xl border border-gray-700 overflow-hidden mb-4"
             >
-              {/* Section Header */}
               <Pressable
                 onPress={() => toggleSection(section.id)}
                 className="w-full p-4 transition-colors hover:bg-gray-700"
@@ -218,7 +215,6 @@ export default function Settings() {
                 </View>
               </Pressable>
 
-              {/* Section Content */}
               {expandedSection === section.id && (
                 <View className="px-4 pb-4 space-y-2">
                   {section.items.map((item) => (

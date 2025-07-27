@@ -47,8 +47,6 @@ export const baseColors = {
 
 // Hook para usar as cores base
 export const useBaseColors = (colorScheme?: any) => {
-  // Por enquanto, sempre retorna as cores escuras
-  // Você pode expandir isso para suportar tema claro/escuro baseado no colorScheme
   return baseColors;
 };
 

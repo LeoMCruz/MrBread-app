@@ -30,7 +30,7 @@ interface ModalFlatListProps {
   headerActions?: React.ReactNode;
   maxWidth?: number;
   maxHeight?: number;
-  height?: number; 
+  height?: number;
 }
 
 export default function ModalFlatList({
@@ -98,21 +98,19 @@ export default function ModalFlatList({
       animationType="none"
       statusBarTranslucent
     >
-      {/* Overlay preta semi-transparente */}
       <TouchableWithoutFeedback onPress={handleClose}>
         <View style={{ flex: 1, backgroundColor: "black", opacity: 0.8 }} />
       </TouchableWithoutFeedback>
 
-      {/* Modal centralizado */}
       <Animated.View
         style={{
-          position: 'absolute',
+          position: "absolute",
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
-          justifyContent: 'center',
-          alignItems: 'center',
+          justifyContent: "center",
+          alignItems: "center",
           opacity: opacity,
         }}
       >
@@ -120,14 +118,13 @@ export default function ModalFlatList({
           style={{
             transform: [{ scale }],
             maxHeight: height ? SCREEN_HEIGHT * height : maxHeight,
-            width: '90%',
+            width: "90%",
             backgroundColor: colors.background,
             borderRadius: 16,
-            overflow: 'hidden',
+            overflow: "hidden",
             flex: 1,
           }}
         >
-          {/* Header */}
           {showHeader && (
             <View className="flex-row items-center h-[72px] px-4 border-b border-gray-700">
               <View className="flex-row items-center gap-3 flex-grow">
@@ -156,27 +153,24 @@ export default function ModalFlatList({
             </View>
           )}
 
-          {/* Content - View normal ao invés de ScrollView */}
-          <View 
+          <View
             className="flex-1"
-            style={{ 
+            style={{
               padding: 16,
             }}
           >
             {children}
           </View>
 
-          {/* Footer */}
           {footer && (
             <View className="flex-row gap-2 p-4 border-t border-gray-700">
               {footer}
             </View>
           )}
 
-          {/* Loading */}
           {loading && loading}
         </Animated.View>
       </Animated.View>
     </RNModal>
   );
-} 
+}

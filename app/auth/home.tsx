@@ -1,4 +1,4 @@
-import { View, ScrollView, Pressable, StatusBar } from 'react-native';
+import { View, ScrollView, Pressable} from 'react-native';
 import { router } from 'expo-router';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
@@ -10,15 +10,10 @@ import {
   Package, 
   Wrench, 
   FileText, 
-  ShoppingCart, 
   Settings, 
   TrendingUp,
-  User,
-  Building,
-  Menu
 } from 'lucide-react-native';
 import { useAuthStore } from '@/stores/authStore';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { Platform } from 'react-native';
 
 interface MenuCard {
@@ -102,7 +97,7 @@ export default function Home() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray-900">
+    <View className="flex-1 bg-gray-900">
       <Header
         rightActions={
           <IconButton
@@ -113,12 +108,10 @@ export default function Home() {
         }
       />
 
-              {/* Content */}
         <ScrollView 
           className={`flex-1 px-6 ${Platform.OS === 'ios' ? 'pt-6' : ''}`}
           contentContainerStyle={{ flexGrow: 1 }}
         >
-                    {/* Welcome Section */}
           <View className="mb-8 ">
             <Typography variant="h2" className="text-center text-white mb-2">
               Bem-vindo, Usuário!
@@ -128,7 +121,6 @@ export default function Home() {
             </Typography>
           </View>
 
-        {/* Quick Stats */}
         <View className="bg-gray-800 rounded-xl p-4 mb-6">
           <Typography variant="h3" className="text-white mb-3">
             Resumo do Dia
@@ -153,7 +145,6 @@ export default function Home() {
           </View>
         </View>
 
-        {/* Menu Grid */}
         <View className="mb-6">
           <Typography variant="h3" className="text-white mb-4">
             Menu Principal
@@ -194,6 +185,6 @@ export default function Home() {
           />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 } 

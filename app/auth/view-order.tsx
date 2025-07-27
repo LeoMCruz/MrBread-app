@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { View, ScrollView, Platform } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import {
@@ -12,8 +12,8 @@ import {
 import Header from "@/components/ui/Header";
 import Typography from "@/components/ui/Typography";
 import IconButton from "@/components/ui/IconButton";
+import ViewOrderSkeleton from "@/components/ui/loadingPages/viewOrderSkeleton";
 
-// Tipos
 interface Customer {
   id: number;
   name: string;
@@ -58,10 +58,8 @@ interface Order {
 
 export default function ViewOrderScreen() {
   const params = useLocalSearchParams();
-  // const orderData = params.orderData ? JSON.parse(params.orderData as string) : null;
+  const [isPageLoading, setIsPageLoading] = useState(true);
 
-  // Mock data para demonstração (em um app real viria da API)
-  // Por enquanto, sempre usamos os dados mockados para ver como fica o layout
   const order: Order = {
     id: "1",
     orderNumber: "PED-001",
@@ -157,6 +155,14 @@ export default function ViewOrderScreen() {
     createdAt: "2024-01-15T10:30:00Z",
   };
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsPageLoading(false);
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("pt-BR", {
@@ -198,9 +204,26 @@ export default function ViewOrderScreen() {
     router.back();
   };
 
+  if (isPageLoading) {
+    return (
+      <View className="flex-1 bg-gray-900">
+        <Header
+          title="Visualizar Pedido"
+          leftIcon={
+            <IconButton
+              icon={<ArrowLeft size={20} color="#F3F5F7" />}
+              onPress={handleBack}
+              variant="ghost"
+            />
+          }
+        />
+        <ViewOrderSkeleton productsCount={3} servicesCount={3} />
+      </View>
+    );
+  }
+
   return (
-    <View className="flex-1 bg-gray-900 pt-7 pb-6">
-      {/* Header */}
+    <View className="flex-1 bg-gray-900 ">
       <Header
         title="Visualizar Pedido"
         leftIcon={
@@ -212,13 +235,11 @@ export default function ViewOrderScreen() {
         }
       />
 
-      {/* Content */}
       <ScrollView
         className={`flex-1 px-6 mb-6 ${
           Platform.OS === "ios" ? "pt-6" : "pt-4"
         }`}
       >
-        {/* Status do Pedido */}
         <View className="mb-4 flex-row justify-end">
           <View
             className="px-3 py-1 rounded-full"
@@ -234,7 +255,6 @@ export default function ViewOrderScreen() {
           </View>
         </View>
 
-        {/* Número do Pedido */}
         <View className="bg-gray-800 rounded-lg p-4 mb-4 border border-gray-600">
           <View className="flex-row items-center justify-between">
             <View>
@@ -248,7 +268,6 @@ export default function ViewOrderScreen() {
           </View>
         </View>
 
-        {/* Cliente Section */}
         <View
           className="bg-gray-800 rounded-lg p-3 mb-2 border border-gray-600"
           style={{ borderLeftColor: "#10B981", borderLeftWidth: 4 }}
@@ -277,7 +296,6 @@ export default function ViewOrderScreen() {
           </View>
         </View>
 
-        {/* Produtos Section */}
         <View
           className="bg-gray-800 rounded-lg p-3 mb-2 border border-gray-600"
           style={{ borderLeftColor: "#3B82F6", borderLeftWidth: 4 }}
@@ -366,7 +384,6 @@ export default function ViewOrderScreen() {
           </View>
         </View>
 
-        {/* Serviços Section */}
         <View
           className="bg-gray-800 rounded-lg p-3 mb-2 border border-gray-600"
           style={{ borderLeftColor: "#F59E0B", borderLeftWidth: 4 }}
@@ -455,7 +472,6 @@ export default function ViewOrderScreen() {
           </View>
         </View>
 
-        {/* Observações Section */}
         {order.observations && (
           <View
             className="bg-gray-800 rounded-lg p-3 mb-2 border border-gray-600"
@@ -476,7 +492,6 @@ export default function ViewOrderScreen() {
           </View>
         )}
 
-        {/* Resumo Section */}
         <View
           className="bg-gray-800 rounded-lg p-3 mb-6 border border-gray-600"
           style={{ borderLeftColor: "#10B981", borderLeftWidth: 4 }}

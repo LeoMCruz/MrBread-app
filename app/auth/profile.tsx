@@ -11,7 +11,6 @@ export default function Profile() {
 
   const handleSave = () => {
     setIsEditing(false);
-    // Aqui você salvaria as informações
   };
 
   return (
@@ -28,7 +27,6 @@ export default function Profile() {
         </Text>
 
         <View className="space-y-6">
-          {/* Avatar */}
           <View className="items-center mb-8">
             <View className={clsx(
               "w-24 h-24 rounded-full items-center justify-center mb-4",
@@ -48,7 +46,6 @@ export default function Profile() {
             </TouchableOpacity>
           </View>
 
-          {/* Informações Pessoais */}
           <View className="space-y-4">
             <Text className={clsx(
               "text-lg font-semibold",
@@ -124,7 +121,6 @@ export default function Profile() {
             </View>
           </View>
 
-          {/* Botões de Ação */}
           <View className="space-y-4 mt-8">
             {isEditing ? (
               <View className="flex-row space-x-4">

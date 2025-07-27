@@ -11,7 +11,7 @@ import clsx from "clsx";
 import { Eye, EyeOff } from "lucide-react-native";
 import { useBaseColors } from "@/styles/theme";
 
-interface MaskedInputProps extends Omit<TextInputProps, 'style'> {
+interface MaskedInputProps extends Omit<TextInputProps, "style"> {
   label?: string;
   error?: string;
   success?: boolean;
@@ -54,60 +54,97 @@ export default function MaskedInput({
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
 
-  // 🔄 Toggle para senha
   const togglePasswordVisibility = () => {
     setIsPasswordVisible(!isPasswordVisible);
   };
 
-  // 🎭 Máscaras predefinidas
   const getMask = (type?: string) => {
     switch (type) {
-      case 'cnpj':
+      case "cnpj":
         return [
-          /\d/, /\d/, '.', 
-          /\d/, /\d/, /\d/, '.', 
-          /\d/, /\d/, /\d/, '/', 
-          /\d/, /\d/, /\d/, /\d/, '-', 
-          /\d/, /\d/
+          /\d/,
+          /\d/,
+          ".",
+          /\d/,
+          /\d/,
+          /\d/,
+          ".",
+          /\d/,
+          /\d/,
+          /\d/,
+          "/",
+          /\d/,
+          /\d/,
+          /\d/,
+          /\d/,
+          "-",
+          /\d/,
+          /\d/,
         ];
-      case 'cpf':
+      case "cpf":
         return [
-          /\d/, /\d/, /\d/, '.', 
-          /\d/, /\d/, /\d/, '.', 
-          /\d/, /\d/, /\d/, '-', 
-          /\d/, /\d/
+          /\d/,
+          /\d/,
+          /\d/,
+          ".",
+          /\d/,
+          /\d/,
+          /\d/,
+          ".",
+          /\d/,
+          /\d/,
+          /\d/,
+          "-",
+          /\d/,
+          /\d/,
         ];
-      case 'phone':
+      case "phone":
         return [
-          '(', /\d/, /\d/, ')', ' ', 
-          /\d/, /\d/, /\d/, /\d/, /\d/, '-', 
-          /\d/, /\d/, /\d/, /\d/
+          "(",
+          /\d/,
+          /\d/,
+          ")",
+          " ",
+          /\d/,
+          /\d/,
+          /\d/,
+          /\d/,
+          /\d/,
+          "-",
+          /\d/,
+          /\d/,
+          /\d/,
+          /\d/,
         ];
-      case 'cep':
+      case "cep":
+        return [/\d/, /\d/, /\d/, /\d/, /\d/, "-", /\d/, /\d/, /\d/];
+      case "date":
+        return [/\d/, /\d/, "/", /\d/, /\d/, "/", /\d/, /\d/, /\d/, /\d/];
+      case "currency":
         return [
-          /\d/, /\d/, /\d/, /\d/, /\d/, '-', 
-          /\d/, /\d/, /\d/
+          "R",
+          "$",
+          " ",
+          /\d/,
+          /\d/,
+          /\d/,
+          ".",
+          /\d/,
+          /\d/,
+          /\d/,
+          ".",
+          /\d/,
+          /\d/,
+          /\d/,
+          ",",
+          /\d/,
+          /\d/,
         ];
-      case 'date':
-        return [
-          /\d/, /\d/, '/', 
-          /\d/, /\d/, '/', 
-          /\d/, /\d/, /\d/, /\d/
-        ];
-      case 'currency':
-        return [
-          'R', '$', ' ',
-          /\d/, /\d/, /\d/, '.',
-          /\d/, /\d/, /\d/, '.',
-          /\d/, /\d/, /\d/, ',',
-          /\d/, /\d/
-        ];
-        default:
+      default:
         return customMask || [];
     }
   };
 
-  // 🎨 Classes base
   const containerClass = clsx(
     "flex-col",
     fullWidth && "w-full",
@@ -151,47 +188,30 @@ export default function MaskedInput({
       "text-lg": size === "lg",
     },
     {
-      // Padding baseado nos ícones
       "pl-0": !leftIcon,
-      "pl-12": leftIcon, // Espaçamento para o ícone esquerdo
+      "pl-12": leftIcon,
       "pr-0": !rightIcon && !secureTextEntry,
       "pr-12": rightIcon || secureTextEntry,
     },
     className
   );
 
-  const errorClass = clsx(
-    "text-sm text-red-500 mt-1",
-    errorClassName
-  );
+  const errorClass = clsx("text-sm text-red-500 mt-1", errorClassName);
 
-  const iconClass = clsx(
-    "absolute z-10",
-    {
-      "left-3": leftIcon,
-      "right-3": rightIcon || secureTextEntry,
-    }
-  );
+  const iconClass = clsx("absolute z-10", {
+    "left-3": leftIcon,
+    "right-3": rightIcon || secureTextEntry,
+  });
 
   return (
     <View className={containerClass}>
-      {/* Label */}
-      {label && (
-        <Text className={labelClass}>
-          {label}
-        </Text>
-      )}
+      {label && <Text className={labelClass}>{label}</Text>}
 
-      {/* Container do Input */}
       <View className={inputContainerClass}>
-        {/* Ícone Esquerdo */}
         {leftIcon && (
-          <View className={clsx(iconClass, "left-3")}>
-            {leftIcon}
-          </View>
+          <View className={clsx(iconClass, "left-3")}>{leftIcon}</View>
         )}
 
-        {/* Input com Máscara */}
         <MaskInput
           className={inputClass}
           placeholderTextColor="#6b7280"
@@ -208,27 +228,18 @@ export default function MaskedInput({
           {...rest}
         />
 
-        {/* Loading */}
         {loading && (
           <View className={clsx(iconClass, "right-3")}>
             <ActivityIndicator size="small" color={colors.primary} />
           </View>
         )}
 
-        {/* Ícone Direito */}
         {!loading && rightIcon && (
-          <View className={clsx(iconClass, "right-3")}>
-            {rightIcon}
-          </View>
+          <View className={clsx(iconClass, "right-3")}>{rightIcon}</View>
         )}
       </View>
 
-      {/* Mensagem de Erro */}
-      {error && (
-        <Text className={errorClass}>
-          {error}
-        </Text>
-      )}
+      {error && <Text className={errorClass}>{error}</Text>}
     </View>
   );
-} 
+}
