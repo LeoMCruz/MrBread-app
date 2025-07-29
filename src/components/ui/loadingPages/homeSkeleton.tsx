@@ -8,14 +8,14 @@ export default function HomeSkeleton() {
 
   return (
     <View className="flex-1 bg-gray-900">
-      <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-800">
+      <View className="flex-row items-center justify-between px-6 py-4 border-b border-gray-800 mt-10">
         <Skeleton width={120} height={24} rounded={false} />
         <Skeleton width={40} height={40} rounded={true} />
       </View>
 
       <ScrollView
         className={`flex-1 px-6 ${Platform.OS === "ios" ? "pt-6" : ""}`}
-        contentContainerStyle={{ flexGrow: 1 }}
+        contentContainerStyle={{ flexGrow: 1, marginTop: 30 }}
       >
         <View className="mb-8">
           <Skeleton

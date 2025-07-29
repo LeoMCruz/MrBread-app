@@ -1,4 +1,4 @@
-import { View, ScrollView, Pressable} from 'react-native';
+import { View, ScrollView, Pressable, Alert} from 'react-native';
 import { router } from 'expo-router';
 import Typography from '@/components/ui/Typography';
 import Button from '@/components/ui/Button';
@@ -29,10 +29,26 @@ interface MenuCard {
 export default function Home() {
   const { user, logout } = useAuthStore();
 
+  
   const handleLogout = () => {
-    console.log('Logout');
-    logout();
-    router.replace('/public/login');
+    Alert.alert(
+      "Sair",
+      "Tem certeza que deseja sair da sua conta?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Sair",
+          style: "destructive",
+          onPress: () => {
+            logout();
+            router.replace('/public/login');
+          },
+        },
+      ]
+    );
   };
 
   const menuCards: MenuCard[] = [
@@ -40,46 +56,46 @@ export default function Home() {
       id: 'customers',
       title: 'Clientes',
       description: 'Gerenciar clientes',
-      icon: <Users size={24} color="#10B981" />,
+      icon: <Users size={24} color="#F3F5F7" />,
       route: '/auth/customers',
       color: '#10B981',
-      bgColor: '#064E3B'
+      bgColor: '#10B981'
     },
     {
       id: 'products',
       title: 'Produtos',
       description: 'Cadastrar produtos',
-      icon: <Package size={24} color="#3B82F6" />,
+      icon: <Package size={24} color="#F3F5F7" />,
       route: '/auth/products',
       color: '#3B82F6',
-      bgColor: '#1E3A8A'
+      bgColor: '#3B82F6'
     },
     {
       id: 'services',
       title: 'Serviços',
       description: 'Cadastrar serviços',
-      icon: <Wrench size={24} color="#F59E0B" />,
+      icon: <Wrench size={24} color="#F3F5F7" />,
       route: '/auth/services',
       color: '#F59E0B',
-      bgColor: '#92400E'
+      bgColor: '#F59E0B'
     },
     {
       id: 'orders',
       title: 'Pedidos',
       description: 'Gerenciar Pedidos',
-      icon: <FileText size={24} color="#8B5CF6" />,
+      icon: <FileText size={24} color="#F3F5F7" />,
       route: '/auth/orders',
       color: '#8B5CF6',
-      bgColor: '#5B21B6'
+      bgColor: '#8B5CF6'
     },
     {
-      id: 'reports',
-      title: 'Relatórios',
-      description: 'Visualizar relatórios',
-      icon: <TrendingUp size={24} color="#06B6D4" />,
-      route: '/auth/reports',
-      color: '#06B6D4',
-      bgColor: '#0E7490'
+      id: 'dashboard',
+      title: 'Dashboard',
+      description: 'Visualizar dashboard',
+      icon: <TrendingUp size={24} color="#F3F5F7" />,
+      route: '/auth/dashboard',
+      color: '#EC4899',
+      bgColor: '#EC4899'
     },
     {
       id: 'settings',
@@ -87,8 +103,8 @@ export default function Home() {
       description: 'Gerenciar configurações',
       icon: <Settings size={24} color="#F3F5F7" />,
       route: '/auth/settings',
-      color: '#131517',
-      bgColor: '#131517'
+      color: '#6B7280',
+      bgColor: '#6B7280'
     }
   ];
 

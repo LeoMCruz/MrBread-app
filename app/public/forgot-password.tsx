@@ -4,38 +4,32 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
 import { Link, router } from "expo-router";
 import { useState } from "react";
-import { Mail, User, Building, FileText, ArrowLeft } from "lucide-react-native";
+import { Mail, FileText, ArrowLeft, CheckCircle } from "lucide-react-native";
 import Input from "@/components/ui/Input";
 import DocumentInput from "@/components/ui/DocumentInput";
 import Typography from "@/components/ui/Typography";
 import Button from "@/components/ui/Button";
 import Header from "@/components/ui/Header";
 import IconButton from "@/components/ui/IconButton";
-import { registerSchema, type RegisterFormData } from "@/lib/validations";
-import { useAuthStore } from "@/stores/authStore";
+import { forgotPasswordSchema, type ForgotPasswordFormData } from "@/lib/validations";
 
-export default function Register() {
-  const { login, isLoading } = useAuthStore();
-  const [formData, setFormData] = useState<RegisterFormData>({
-    name: "",
+export default function ForgotPassword() {
+  const [formData, setFormData] = useState<ForgotPasswordFormData>({
     email: "",
-    organization: "",
     document: "",
-    password: "",
-    confirmPassword: "",
   });
-  const [errors, setErrors] = useState<Partial<RegisterFormData>>({});
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [errors, setErrors] = useState<Partial<ForgotPasswordFormData>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false);
 
-  const validateField = (field: keyof RegisterFormData, value: string) => {
-    // Só validar se o campo foi tocado ou se já tem erro
+  const validateField = (field: keyof ForgotPasswordFormData, value: string) => {
     if (value.length === 0 && !errors[field]) return;
 
-    const fieldSchema = registerSchema.shape[field];
+    const fieldSchema = forgotPasswordSchema.shape[field];
     const result = fieldSchema.safeParse(value);
 
     if (result.success) {
@@ -46,31 +40,49 @@ export default function Register() {
     }
   };
 
-  const handleFieldChange = (field: keyof RegisterFormData, value: string) => {
+  const handleFieldChange = (field: keyof ForgotPasswordFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // Validar em tempo real sempre que o campo mudar
     validateField(field, value);
   };
 
-  const handleFieldBlur = (field: keyof RegisterFormData) => {
-    // Validar quando o usuário sai do campo
+  const handleFieldBlur = (field: keyof ForgotPasswordFormData) => {
     validateField(field, formData[field]);
   };
 
-  const handleRegister = async () => {
-    const result = registerSchema.safeParse(formData);
+  const handleSubmit = async () => {
+    const result = forgotPasswordSchema.safeParse(formData);
 
     if (result.success) {
+      setIsLoading(true);
+      
       try {
-        await login(formData.email, formData.password, false);
+        // Simular envio de email (mock)
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        
+        setIsSuccess(true);
+        Alert.alert(
+          "Email Enviado!",
+          "Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.",
+          [
+            {
+              text: "OK",
+              onPress: () => router.replace('/public/login'),
+            },
+          ]
+        );
       } catch (error) {
-        console.error("Erro no registro:", error);
+        Alert.alert(
+          "Erro",
+          "Não foi possível enviar o email de recuperação. Verifique os dados e tente novamente."
+        );
+      } finally {
+        setIsLoading(false);
       }
     } else {
-      const fieldErrors: Partial<RegisterFormData> = {};
+      const fieldErrors: Partial<ForgotPasswordFormData> = {};
 
       result.error.issues.forEach((issue) => {
-        const field = issue.path[0] as keyof RegisterFormData;
+        const field = issue.path[0] as keyof ForgotPasswordFormData;
         fieldErrors[field] = issue.message;
       });
 
@@ -82,10 +94,49 @@ export default function Register() {
     router.back();
   };
 
+  if (isSuccess) {
+    return (
+      <View className="flex-1 bg-gray-900">
+        <Header
+          title="Recuperar Senha"
+          leftIcon={
+            <IconButton
+              icon={<ArrowLeft size={20} color="#F3F5F7" />}
+              onPress={handleBack}
+              variant="ghost"
+            />
+          }
+        />
+
+        <View className="flex-1 justify-center items-center px-6">
+          <View className="items-center">
+            <View className="w-20 h-20 bg-green-500 rounded-full items-center justify-center mb-6">
+              <CheckCircle size={40} color="#ffffff" />
+            </View>
+            
+            <Typography variant="h2" className="text-center text-white mb-4">
+              Email Enviado!
+            </Typography>
+            
+            <Typography variant="body-secondary" className="text-center mb-8">
+              Verifique sua caixa de entrada e siga as instruções para redefinir sua senha.
+            </Typography>
+
+            <Button
+              title="Voltar ao Login"
+              onPress={() => router.replace('/public/login')}
+              fullWidth
+            />
+          </View>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1 bg-gray-900">
       <Header
-        title="Criar Conta"
+        title="Recuperar Senha"
         leftIcon={
           <IconButton
             icon={<ArrowLeft size={20} color="#F3F5F7" />}
@@ -107,49 +158,25 @@ export default function Register() {
           <View className="px-6 pt-6">
             <View className="mb-8">
               <Typography variant="h2" className="text-center text-white mb-2">
-                MrBread
+                Esqueceu sua senha?
               </Typography>
               <Typography variant="body-secondary" className="text-center">
-                Crie sua conta gratuitamente
+                Digite seu email e documento para receber instruções de recuperação
               </Typography>
             </View>
 
             <View className="gap-4">
               <Input
-                label="Nome Completo"
-                value={formData.name}
-                onChangeText={(value) => handleFieldChange("name", value)}
-                onBlur={() => handleFieldBlur("name")}
-                placeholder="Digite seu nome completo"
-                leftIcon={<User size={20} color="#6b7280" />}
-                autoComplete="name"
-                error={errors.name}
-              />
-
-              <Input
                 label="E-mail"
                 value={formData.email}
                 onChangeText={(value) => handleFieldChange("email", value)}
                 onBlur={() => handleFieldBlur("email")}
-                placeholder="Digite seu e-mail"
+                placeholder="Digite o email da sua conta"
                 leftIcon={<Mail size={20} color="#6b7280" />}
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoComplete="email"
                 error={errors.email}
-              />
-
-              <Input
-                label="Organização"
-                value={formData.organization}
-                onChangeText={(value) =>
-                  handleFieldChange("organization", value)
-                }
-                onBlur={() => handleFieldBlur("organization")}
-                placeholder="Digite o nome da sua empresa"
-                leftIcon={<Building size={20} color="#6b7280" />}
-                autoComplete="organization"
-                error={errors.organization}
               />
 
               <DocumentInput
@@ -160,47 +187,20 @@ export default function Register() {
                 error={errors.document}
               />
 
-              <Input
-                label="Senha"
-                value={formData.password}
-                onChangeText={(value) => handleFieldChange("password", value)}
-                onBlur={() => handleFieldBlur("password")}
-                placeholder="Digite sua senha"
-                secureTextEntry={!showPassword}
-                autoComplete="new-password"
-                error={errors.password}
-              />
-
-              <Input
-                label="Confirmar Senha"
-                value={formData.confirmPassword}
-                onChangeText={(value) =>
-                  handleFieldChange("confirmPassword", value)
-                }
-                onBlur={() => handleFieldBlur("confirmPassword")}
-                placeholder="Confirme sua senha"
-                secureTextEntry={!showConfirmPassword}
-                autoComplete="new-password"
-                error={errors.confirmPassword}
-              />
-
               <Button
                 title={
                   isLoading ? (
                     <ActivityIndicator size="small" color="#F3F5F7" />
                   ) : (
-                    "Criar Conta"
+                    "Enviar Email de Recuperação"
                   )
                 }
-                onPress={handleRegister}
+                onPress={handleSubmit}
                 disabled={
                   isLoading ||
-                  !formData.name ||
                   !formData.email ||
-                  !formData.organization ||
                   !formData.document ||
-                  !formData.password ||
-                  !formData.confirmPassword
+                  Object.keys(errors).length > 0
                 }
                 loading={isLoading}
                 fullWidth
@@ -210,7 +210,7 @@ export default function Register() {
 
             <View className="mt-8">
               <Typography variant="body-secondary" className="text-center">
-                Já tem uma conta?{" "}
+                Lembrou sua senha?{" "}
                 <Link href="/public/login">
                   <Typography variant="link" className="text-base">
                     Fazer login
@@ -218,9 +218,15 @@ export default function Register() {
                 </Link>
               </Typography>
             </View>
+
+            <View className="mt-6 p-4 bg-blue-900/20 border border-blue-500/30 rounded-lg">
+              <Typography variant="body-secondary" className="text-center text-blue-300">
+                💡 Dica: Verifique também sua pasta de spam caso não receba o email em alguns minutos.
+              </Typography>
+            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
-}
+} 

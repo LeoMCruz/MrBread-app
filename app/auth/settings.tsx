@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { View, ScrollView, Pressable, Platform } from "react-native";
+import { View, ScrollView, Pressable, Platform, Alert } from "react-native";
 import { router } from "expo-router";
 import {
   ChevronDown,
@@ -16,9 +16,11 @@ import {
   Users,
   Key,
   ArrowLeft,
+  Trash2,
 } from "lucide-react-native";
 import Header from "@/components/ui/Header";
 import Typography from "@/components/ui/Typography";
+import { useAuthStore } from "@/stores/authStore";
 
 interface ConfigSection {
   id: string;
@@ -39,9 +41,31 @@ interface ConfigItem {
 
 export default function Settings() {
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
+  const { logout, clearSavedCredentials, savedCredentials } = useAuthStore();
 
   const toggleSection = (sectionId: string) => {
     setExpandedSection(expandedSection === sectionId ? null : sectionId);
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Sair",
+      "Tem certeza que deseja sair da sua conta?",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Sair",
+          style: "destructive",
+          onPress: () => {
+            logout();
+            router.replace('/public/login');
+          },
+        },
+      ]
+    );
   };
 
   const configSections: ConfigSection[] = [
@@ -161,7 +185,7 @@ export default function Settings() {
           subtitle: "Fazer logout",
           icon: <LogOut size={16} color="#ffffff" />,
           color: "#EF4444",
-          onPress: () => console.log("Sair"),
+          onPress: handleLogout,
         },
       ],
     },

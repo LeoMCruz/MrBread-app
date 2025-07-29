@@ -12,6 +12,7 @@ import Header from "@/components/ui/Header";
 import IconButton from "@/components/ui/IconButton";
 import Input from "@/components/ui/Input";
 import MaskedInput from "@/components/ui/MaskedInput";
+import DocumentInput from "@/components/ui/DocumentInput";
 import {
   ArrowLeft,
   Building,
@@ -19,6 +20,7 @@ import {
   Mail,
   Phone,
   FileText,
+  Home,
 } from "lucide-react-native";
 
 interface Customer {
@@ -156,15 +158,12 @@ export default function NewCustomer() {
               leftIcon={<FileText size={20} color="#6b7280" />}
             />
 
-            <MaskedInput
-              label="CNPJ"
-              placeholder="00.000.000/0000-00"
+            <DocumentInput
               value={formData.cnpj}
               onChangeText={(text) =>
                 setFormData((prev) => ({ ...prev, cnpj: text }))
               }
               leftIcon={<FileText size={20} color="#6b7280" />}
-              maskType="cnpj"
             />
 
             <Input

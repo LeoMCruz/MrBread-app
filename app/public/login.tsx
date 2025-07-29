@@ -6,9 +6,9 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
-import { Link } from "expo-router";
-import { useState } from "react";
-import { Mail } from "lucide-react-native";
+import { Link, router } from "expo-router";
+import { useState, useEffect } from "react";
+import { Mail, Check } from "lucide-react-native";
 import Input from "@/components/ui/Input";
 import Typography from "@/components/ui/Typography";
 import Button from "@/components/ui/Button";
@@ -17,13 +17,35 @@ import { loginSchema, type LoginFormData } from "@/lib/validations";
 import { useAuthStore } from "@/stores/authStore";
 
 export default function Login() {
-  const { login, isLoading } = useAuthStore();
+  const { 
+    login, 
+    isLoading, 
+    rememberMe, 
+    setRememberMe, 
+    loadSavedCredentials 
+  } = useAuthStore();
+  
   const [formData, setFormData] = useState<LoginFormData>({
     email: "",
     password: "",
   });
   const [errors, setErrors] = useState<Partial<LoginFormData>>({});
   const [showPassword, setShowPassword] = useState(false);
+
+  // Carregar credenciais salvas na inicialização
+  useEffect(() => {
+    const initializeCredentials = async () => {
+      const credentials = await loadSavedCredentials();
+      if (credentials) {
+        setFormData({
+          email: credentials.email,
+          password: credentials.password,
+        });
+      }
+    };
+    
+    initializeCredentials();
+  }, []);
 
   const validateField = (field: keyof LoginFormData, value: string) => {
     // Só validar se o campo foi tocado ou se já tem erro
@@ -56,7 +78,7 @@ export default function Login() {
 
     if (result.success) {
       try {
-        await login(formData.email, formData.password);
+        await login(formData.email, formData.password, rememberMe);
       } catch (error) {
         console.error("Erro no login:", error);
       }
@@ -70,6 +92,10 @@ export default function Login() {
 
       setErrors(fieldErrors);
     }
+  };
+
+  const handleRememberMeToggle = () => {
+    setRememberMe(!rememberMe);
   };
 
   return (
@@ -118,8 +144,24 @@ export default function Login() {
                 error={errors.password}
               />
 
-              <View className="items-end ">
-                <Pressable>
+              <View className="flex-row items-center justify-between">
+                <Pressable 
+                  onPress={handleRememberMeToggle}
+                  className="flex-row items-center"
+                >
+                  <View className={`w-5 h-5 rounded border-2 mr-3 items-center justify-center ${
+                    rememberMe 
+                      ? 'bg-blue-500 border-blue-500' 
+                      : 'border-gray-400'
+                  }`}>
+                    {rememberMe && <Check size={12} color="#ffffff" />}
+                  </View>
+                  <Typography variant="body-secondary" size="sm">
+                    Lembrar login
+                  </Typography>
+                </Pressable>
+
+                <Pressable onPress={() => router.push('/public/forgot-password')}>
                   <Typography variant="link" size="sm">
                     Esqueceu sua senha?
                   </Typography>
