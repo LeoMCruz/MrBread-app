@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
-import { View, ScrollView, Platform } from "react-native";
+import { View, ScrollView, Platform, Alert, Pressable } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import Toast from "react-native-toast-message";
 import {
   User,
   Package,
@@ -8,180 +9,54 @@ import {
   FileText,
   Calculator,
   ArrowLeft,
+  MoreVertical,
+  CheckCircle,
+  Clock,
+  XCircle,
 } from "lucide-react-native";
 import Header from "@/components/ui/Header";
 import Typography from "@/components/ui/Typography";
 import IconButton from "@/components/ui/IconButton";
 import ViewOrderSkeleton from "@/components/ui/loadingPages/viewOrderSkeleton";
-
-interface Customer {
-  id: number;
-  name: string;
-  cnpj: string;
-  city: string;
-}
-
-interface OrderProduct {
-  id: number;
-  productId: number;
-  name: string;
-  unit: string;
-  quantity: number;
-  price: number;
-  total: number;
-}
-
-interface OrderService {
-  id: number;
-  serviceId: number;
-  name: string;
-  description: string;
-  quantity: number;
-  price: number;
-  total: number;
-}
-
-interface Order {
-  id: string;
-  orderNumber: string;
-  customer: Customer;
-  products: OrderProduct[];
-  services: OrderService[];
-  observations: string;
-  subtotalProducts: number;
-  subtotalServices: number;
-  discount: number;
-  total: number;
-  status: "pending" | "completed" | "cancelled";
-  createdAt: string;
-}
+import { useOrdersStore } from "@/stores/ordersStore";
 
 export default function ViewOrderScreen() {
   const params = useLocalSearchParams();
+  const { getOrderById, selectedOrder } = useOrdersStore();
   const [isPageLoading, setIsPageLoading] = useState(true);
-
-  const order: Order = {
-    id: "1",
-    orderNumber: "PED-001",
-    customer: {
-      id: 1,
-      name: "Empresa ABC Ltda",
-      cnpj: "12.345.678/0001-90",
-      city: "São Paulo",
-    },
-    products: [
-      {
-        id: 1,
-        productId: 1,
-        name: "Pão Francês",
-        unit: "Unidade",
-        quantity: 100,
-        price: 0.5,
-        total: 50.0,
-      },
-      {
-        id: 2,
-        productId: 2,
-        name: "Bolo de Chocolate",
-        unit: "Unidade",
-        quantity: 5,
-        price: 15.0,
-        total: 75.0,
-      },
-      {
-        id: 3,
-        productId: 3,
-        name: "Croissant",
-        unit: "Unidade",
-        quantity: 20,
-        price: 4.5,
-        total: 90.0,
-      },
-      {
-        id: 4,
-        productId: 4,
-        name: "Pão de Queijo",
-        unit: "Unidade",
-        quantity: 50,
-        price: 2.5,
-        total: 125.0,
-      },
-      {
-        id: 5,
-        productId: 5,
-        name: "Torta de Frango",
-        unit: "Unidade",
-        quantity: 3,
-        price: 35.0,
-        total: 105.0,
-      },
-    ],
-    services: [
-      {
-        id: 1,
-        serviceId: 1,
-        name: "Entrega",
-        description: "Entrega no local do cliente",
-        quantity: 1,
-        price: 25.0,
-        total: 25.0,
-      },
-      {
-        id: 2,
-        serviceId: 2,
-        name: "Embalagem Especial",
-        description: "Embalagem personalizada para evento",
-        quantity: 1,
-        price: 15.0,
-        total: 15.0,
-      },
-      {
-        id: 3,
-        serviceId: 3,
-        name: "Montagem de Buffet",
-        description: "Serviço de montagem e organização do buffet",
-        quantity: 1,
-        price: 80.0,
-        total: 80.0,
-      },
-    ],
-    observations:
-      "Entregar até às 18h. Pedido para evento corporativo. Favor embalar com cuidado especial. Incluir talheres descartáveis e guardanapos. Entrada pela portaria principal.",
-    subtotalProducts: 445.0,
-    subtotalServices: 120.0,
-    discount: 25.0,
-    total: 540.0,
-    status: "completed",
-    createdAt: "2024-01-15T10:30:00Z",
-  };
+  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
+    if (params.id) {
+      loadOrderDetails(params.id as string);
+    }
+  }, [params.id]);
+
+  const loadOrderDetails = async (orderId: string) => {
+    try {
+      setIsPageLoading(true);
+      await getOrderById(orderId);
+    } catch (error) {
+      console.error("Erro ao carregar detalhes do pedido:", error);
+    } finally {
       setIsPageLoading(false);
-    }, 2000);
+    }
+  };
 
-    return () => clearTimeout(timer);
-  }, []);
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+  const handleBack = () => {
+    router.back();
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "completed":
+      case "CONCLUIDO":
         return "#10B981";
-      case "pending":
+      case "PENDENTE":
         return "#F59E0B";
-      case "cancelled":
+      case "CANCELADO":
         return "#EF4444";
+      case "ATIVO":
+        return "#3B82F6";
       default:
         return "#6B7280";
     }
@@ -189,20 +64,108 @@ export default function ViewOrderScreen() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "completed":
+      case "CONCLUIDO":
         return "Concluído";
-      case "pending":
+      case "PENDENTE":
         return "Pendente";
-      case "cancelled":
+      case "CANCELADO":
         return "Cancelado";
+      case "ATIVO":
+        return "Ativo";
       default:
         return "Desconhecido";
     }
   };
 
-  const handleBack = () => {
-    router.back();
+  const showToast = (
+    type: "success" | "error",
+    title: string,
+    message?: string
+  ) => {
+    Toast.show({
+      type,
+      text1: title,
+      text2: message,
+      position: "top",
+      visibilityTime: 3000,
+      autoHide: true,
+      topOffset: 60,
+    });
   };
+
+  const handleStatusChange = (
+    newStatus: "PENDENTE" | "CONCLUIDO" | "CANCELADO"
+  ) => {
+    const statusText = getStatusText(newStatus);
+    const currentStatusText = getStatusText(selectedOrder?.status || "");
+
+    Alert.alert(
+      "Alterar Status",
+      `Deseja alterar o status do pedido de "${currentStatusText}" para "${statusText}"?`,
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Confirmar",
+          onPress: async () => {
+            try {
+              // TODO: Implementar alteração de status na API
+              showToast(
+                "success",
+                "Status alterado!",
+                `Pedido ${
+                  selectedOrder?.idPedido
+                } foi marcado como ${statusText.toLowerCase()}.`
+              );
+            } catch (error) {
+              showToast(
+                "error",
+                "Erro ao alterar",
+                "Não foi possível alterar o status do pedido."
+              );
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const showStatusMenu = () => {
+    setShowDropdown(!showDropdown);
+  };
+
+  const handleStatusOption = (
+    newStatus: "PENDENTE" | "CONCLUIDO" | "CANCELADO"
+  ) => {
+    setShowDropdown(false);
+    handleStatusChange(newStatus);
+  };
+
+  // Função para capitalizar primeira letra
+  const capitalizeFirstLetter = (text: string): string => {
+    if (!text) return text;
+    return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase();
+  };
+
+  // Se não há pedido selecionado, mostrar loading
+  if (!selectedOrder) {
+    return (
+      <View className="flex-1 bg-gray-900">
+        <Header
+          title="Visualizar Pedido"
+          leftIcon={
+            <IconButton
+              icon={<ArrowLeft size={20} color="#F3F5F7" />}
+              onPress={handleBack}
+              variant="ghost"
+            />
+          }
+        />
+        <ViewOrderSkeleton productsCount={3} servicesCount={3} />
+      </View>
+    );
+  }
+
+  const order = selectedOrder;
 
   if (isPageLoading) {
     return (
@@ -240,18 +203,82 @@ export default function ViewOrderScreen() {
           Platform.OS === "ios" ? "pt-6" : "pt-4"
         }`}
       >
-        <View className="mb-4 flex-row justify-end">
-          <View
-            className="px-3 py-1 rounded-full"
-            style={{ backgroundColor: getStatusColor(order.status) + "20" }}
-          >
-            <Typography
-              variant="caption"
-              size="xs"
-              style={{ color: getStatusColor(order.status) }}
+        <View className="mb-4 flex-row justify-between items-center">
+          <View />
+          <View className="flex-row items-center gap-2 relative">
+            <View
+              className="px-3 py-1 rounded-full"
+              style={{ backgroundColor: getStatusColor(order.status) + "20" }}
             >
-              {getStatusText(order.status)}
-            </Typography>
+              <Typography
+                variant="caption"
+                size="xs"
+                style={{ color: getStatusColor(order.status) }}
+              >
+                {getStatusText(order.status)}
+              </Typography>
+            </View>
+            <Pressable
+              onPress={showStatusMenu}
+              className="p-2 rounded-lg bg-gray-800"
+            >
+              <MoreVertical size={16} color="#F3F5F7" />
+            </Pressable>
+
+            {/* Dropdown Menu */}
+            {showDropdown && (
+              <View className="absolute top-12 right-0 bg-gray-800 rounded-lg border border-gray-600 shadow-lg z-10 min-w-48">
+                <View className="p-1">
+                  {order.status !== "PENDENTE" && (
+                    <Pressable
+                      onPress={() => handleStatusOption("PENDENTE")}
+                      className="flex-row items-center gap-3 p-3 rounded-lg hover:bg-gray-700"
+                    >
+                      <Clock size={16} color="#F59E0B" />
+                      <Typography
+                        variant="body"
+                        size="sm"
+                        className="text-white"
+                      >
+                        Marcar como Pendente
+                      </Typography>
+                    </Pressable>
+                  )}
+
+                  {order.status !== "CONCLUIDO" && (
+                    <Pressable
+                      onPress={() => handleStatusOption("CONCLUIDO")}
+                      className="flex-row items-center gap-3 p-3 rounded-lg hover:bg-gray-700"
+                    >
+                      <CheckCircle size={16} color="#10B981" />
+                      <Typography
+                        variant="body"
+                        size="sm"
+                        className="text-white"
+                      >
+                        Marcar como Concluído
+                      </Typography>
+                    </Pressable>
+                  )}
+
+                  {order.status !== "CANCELADO" && (
+                    <Pressable
+                      onPress={() => handleStatusOption("CANCELADO")}
+                      className="flex-row items-center gap-3 p-3 rounded-lg hover:bg-gray-700"
+                    >
+                      <XCircle size={16} color="#EF4444" />
+                      <Typography
+                        variant="body"
+                        size="sm"
+                        className="text-white"
+                      >
+                        Cancelar Pedido
+                      </Typography>
+                    </Pressable>
+                  )}
+                </View>
+              </View>
+            )}
           </View>
         </View>
 
@@ -259,17 +286,17 @@ export default function ViewOrderScreen() {
           <View className="flex-row items-center justify-between">
             <View>
               <Typography variant="h2" className="text-white mb-1">
-                {order.orderNumber}
+                {order.idPedido}
               </Typography>
               <Typography variant="body-secondary" className="text-sm">
-                Criado em {formatDate(order.createdAt)}
+                Criado em {order.dataCriacao}
               </Typography>
             </View>
           </View>
         </View>
 
         <View
-          className="bg-gray-800 rounded-lg p-3 mb-2 border border-gray-600"
+          className="bg-gray-800 rounded-lg p-3 mb-4 border border-gray-600"
           style={{ borderLeftColor: "#10B981", borderLeftWidth: 4 }}
         >
           <View className="flex-row items-center gap-2 mb-3">
@@ -281,23 +308,27 @@ export default function ViewOrderScreen() {
 
           <View className="bg-gray-700 rounded-lg p-3 border border-gray-600">
             <Typography variant="body" size="sm" className="font-medium mb-1">
-              {order.customer?.name || "Cliente não informado"}
+              {order.nomeFantasiaCliente || "Cliente não informado"}
             </Typography>
             <Typography
               variant="caption"
               size="xs"
               className="text-gray-400 mb-1"
             >
-              CNPJ: {order.customer?.cnpj || "Não informado"}
+              {order.cnpj.length < 15
+                ? "CPF: " + order.cnpj
+                : "CNPJ: " + order.cnpj}
             </Typography>
             <Typography variant="caption" size="xs" className="text-gray-400">
-              {order.customer?.city || "Cidade não informada"}
+              {capitalizeFirstLetter(order.cidade) +
+                " - " +
+                capitalizeFirstLetter(order.estado)}
             </Typography>
           </View>
         </View>
 
         <View
-          className="bg-gray-800 rounded-lg p-3 mb-2 border border-gray-600"
+          className="bg-gray-800 rounded-lg p-3 mb-4 border border-gray-600"
           style={{ borderLeftColor: "#3B82F6", borderLeftWidth: 4 }}
         >
           <View className="flex-row items-center gap-2 mb-3">
@@ -308,74 +339,81 @@ export default function ViewOrderScreen() {
           </View>
 
           <View className="space-y-2 gap-1">
-            {order.products && order.products.length > 0 ? (
-              order.products.map((product) => (
-                <View
-                  key={product.id}
-                  className="bg-gray-700 rounded-lg p-3 px-3 border border-gray-600"
-                >
-                  <View className="flex-row items-center justify-between mb-2">
-                    <View className="flex-1">
-                      <Typography
-                        variant="body"
-                        size="sm"
-                        className="font-medium"
-                      >
-                        {product.name || "Produto sem nome"}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        size="xs"
-                        className="text-gray-400"
-                      >
-                        {product.unit || "Unidade"}
-                      </Typography>
+            {order.itens.filter((item) => item.tipo === "Produto").length >
+            0 ? (
+              order.itens
+                .filter((item) => item.tipo === "Produto")
+                .map((item) => (
+                  <View
+                    key={item.id}
+                    className="bg-gray-700 rounded-lg p-3 px-3 border border-gray-600 mb-2"
+                  >
+                    <View className="flex-row items-center justify-between mb-2">
+                      <View className="flex-1">
+                        <Typography
+                          variant="body"
+                          size="sm"
+                          className="font-medium"
+                        >
+                          {item.nome || "Produto sem nome"}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          size="xs"
+                          className="text-gray-400"
+                        >
+                          {item.descricao || "Unidade"}
+                        </Typography>
+                      </View>
+                    </View>
+                    <View className="flex-row gap-4">
+                      <View>
+                        <Typography
+                          variant="caption"
+                          size="xs"
+                          className="text-gray-400"
+                        >
+                          Quantidade
+                        </Typography>
+                        <Typography variant="body" size="sm">
+                          {item.quantidade || 0}
+                        </Typography>
+                      </View>
+                      <View>
+                        <Typography
+                          variant="caption"
+                          size="xs"
+                          className="text-gray-400"
+                        >
+                          Preço Unit.
+                        </Typography>
+                        <Typography variant="body" size="sm">
+                          R${" "}
+                          {(item.precoUnitario || 0)
+                            .toFixed(2)
+                            .replace(".", ",")}
+                        </Typography>
+                      </View>
+                      <View className="flex-1 items-end">
+                        <Typography
+                          variant="caption"
+                          size="xs"
+                          className="text-gray-400"
+                        >
+                          Total
+                        </Typography>
+                        <Typography
+                          variant="body"
+                          size="sm"
+                          className="text-emerald-500 font-semibold"
+                        >
+                          R${" "}
+                          {(item.precoTotal || 0).toFixed(2).replace(".", ",")}
+                        </Typography>
+                      </View>
                     </View>
                   </View>
-                  <View className="flex-row gap-4">
-                    <View>
-                      <Typography
-                        variant="caption"
-                        size="xs"
-                        className="text-gray-400"
-                      >
-                        Quantidade
-                      </Typography>
-                      <Typography variant="body" size="sm">
-                        {product.quantity || 0}
-                      </Typography>
-                    </View>
-                    <View>
-                      <Typography
-                        variant="caption"
-                        size="xs"
-                        className="text-gray-400"
-                      >
-                        Preço Unit.
-                      </Typography>
-                      <Typography variant="body" size="sm">
-                        R$ {(product.price || 0).toFixed(2).replace(".", ",")}
-                      </Typography>
-                    </View>
-                    <View className="flex-1 items-end">
-                      <Typography
-                        variant="caption"
-                        size="xs"
-                        className="text-gray-400"
-                      >
-                        Total
-                      </Typography>
-                      <Typography
-                        variant="body"
-                        size="sm"
-                        className="text-emerald-500 font-semibold"
-                      >
-                        R$ {(product.total || 0).toFixed(2).replace(".", ",")}
-                      </Typography>
-                    </View>
-                  </View>
-                </View>
-              ))
+                ))
             ) : (
               <Typography variant="body-secondary" className="text-center py-4">
                 Nenhum produto adicionado
@@ -385,7 +423,7 @@ export default function ViewOrderScreen() {
         </View>
 
         <View
-          className="bg-gray-800 rounded-lg p-3 mb-2 border border-gray-600"
+          className="bg-gray-800 rounded-lg p-3 mb-4 border border-gray-600"
           style={{ borderLeftColor: "#F59E0B", borderLeftWidth: 4 }}
         >
           <View className="flex-row items-center gap-2 mb-3">
@@ -396,74 +434,81 @@ export default function ViewOrderScreen() {
           </View>
 
           <View className="space-y-2 gap-1">
-            {order.services && order.services.length > 0 ? (
-              order.services.map((service) => (
-                <View
-                  key={service.id}
-                  className="bg-gray-700 rounded-lg p-3 px-3 border border-gray-600"
-                >
-                  <View className="flex-row items-center justify-between mb-2">
-                    <View className="flex-1">
-                      <Typography
-                        variant="body"
-                        size="sm"
-                        className="font-medium"
-                      >
-                        {service.name || "Serviço sem nome"}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        size="xs"
-                        className="text-gray-400"
-                      >
-                        {service.description || "Sem descrição"}
-                      </Typography>
+            {order.itens.filter((item) => item.tipo === "Serviço").length >
+            0 ? (
+              order.itens
+                .filter((item) => item.tipo === "Serviço")
+                .map((item) => (
+                  <View
+                    key={item.id}
+                    className="bg-gray-700 rounded-lg p-3 px-3 border border-gray-600 mb-2"
+                  >
+                    <View className="flex-row items-center justify-between mb-2">
+                      <View className="flex-1">
+                        <Typography
+                          variant="body"
+                          size="sm"
+                          className="font-medium"
+                        >
+                          {item.nome || "Serviço sem nome"}
+                        </Typography>
+                        <Typography
+                          variant="caption"
+                          size="xs"
+                          className="text-gray-400"
+                        >
+                          {item.descricao || "Sem descrição"}
+                        </Typography>
+                      </View>
+                    </View>
+                    <View className="flex-row gap-4">
+                      <View>
+                        <Typography
+                          variant="caption"
+                          size="xs"
+                          className="text-gray-400"
+                        >
+                          Quantidade
+                        </Typography>
+                        <Typography variant="body" size="sm">
+                          {item.quantidade || 0}
+                        </Typography>
+                      </View>
+                      <View>
+                        <Typography
+                          variant="caption"
+                          size="xs"
+                          className="text-gray-400"
+                        >
+                          Preço Unit.
+                        </Typography>
+                        <Typography variant="body" size="sm">
+                          R${" "}
+                          {(item.precoUnitario || 0)
+                            .toFixed(2)
+                            .replace(".", ",")}
+                        </Typography>
+                      </View>
+                      <View className="flex-1 items-end">
+                        <Typography
+                          variant="caption"
+                          size="xs"
+                          className="text-gray-400"
+                        >
+                          Total
+                        </Typography>
+                        <Typography
+                          variant="body"
+                          size="sm"
+                          className="text-emerald-500 font-semibold"
+                        >
+                          R${" "}
+                          {(item.precoTotal || 0).toFixed(2).replace(".", ",")}
+                        </Typography>
+                      </View>
                     </View>
                   </View>
-                  <View className="flex-row gap-4">
-                    <View>
-                      <Typography
-                        variant="caption"
-                        size="xs"
-                        className="text-gray-400"
-                      >
-                        Quantidade
-                      </Typography>
-                      <Typography variant="body" size="sm">
-                        {service.quantity || 0}
-                      </Typography>
-                    </View>
-                    <View>
-                      <Typography
-                        variant="caption"
-                        size="xs"
-                        className="text-gray-400"
-                      >
-                        Preço Unit.
-                      </Typography>
-                      <Typography variant="body" size="sm">
-                        R$ {(service.price || 0).toFixed(2).replace(".", ",")}
-                      </Typography>
-                    </View>
-                    <View className="flex-1 items-end">
-                      <Typography
-                        variant="caption"
-                        size="xs"
-                        className="text-gray-400"
-                      >
-                        Total
-                      </Typography>
-                      <Typography
-                        variant="body"
-                        size="sm"
-                        className="text-emerald-500 font-semibold"
-                      >
-                        R$ {(service.total || 0).toFixed(2).replace(".", ",")}
-                      </Typography>
-                    </View>
-                  </View>
-                </View>
-              ))
+                ))
             ) : (
               <Typography variant="body-secondary" className="text-center py-4">
                 Nenhum serviço adicionado
@@ -471,10 +516,10 @@ export default function ViewOrderScreen() {
             )}
           </View>
         </View>
-
+        {/* 
         {order.observations && (
           <View
-            className="bg-gray-800 rounded-lg p-3 mb-2 border border-gray-600"
+            className="bg-gray-800 rounded-lg p-3 mb-4 border border-gray-600"
             style={{ borderLeftColor: "#10B981", borderLeftWidth: 4 }}
           >
             <View className="flex-row items-center gap-2 mb-3">
@@ -490,7 +535,7 @@ export default function ViewOrderScreen() {
               </Typography>
             </View>
           </View>
-        )}
+        )} */}
 
         <View
           className="bg-gray-800 rounded-lg p-3 mb-6 border border-gray-600"
@@ -509,7 +554,12 @@ export default function ViewOrderScreen() {
                 Subtotal Produtos:
               </Typography>
               <Typography variant="body" size="sm">
-                R$ {(order.subtotalProducts || 0).toFixed(2).replace(".", ",")}
+                R${" "}
+                {order.itens
+                  .filter((item) => item.tipo === "Produto")
+                  .reduce((sum, item) => sum + item.precoTotal, 0)
+                  .toFixed(2)
+                  .replace(".", ",")}
               </Typography>
             </View>
             <View className="flex-row justify-between">
@@ -517,15 +567,12 @@ export default function ViewOrderScreen() {
                 Subtotal Serviços:
               </Typography>
               <Typography variant="body" size="sm">
-                R$ {(order.subtotalServices || 0).toFixed(2).replace(".", ",")}
-              </Typography>
-            </View>
-            <View className="flex-row justify-between">
-              <Typography variant="caption" size="sm" className="text-gray-400">
-                Desconto:
-              </Typography>
-              <Typography variant="body" size="sm" className="text-red-400">
-                -R$ {(order.discount || 0).toFixed(2).replace(".", ",")}
+                R${" "}
+                {order.itens
+                  .filter((item) => item.tipo === "Serviço")
+                  .reduce((sum, item) => sum + item.precoTotal, 0)
+                  .toFixed(2)
+                  .replace(".", ",")}
               </Typography>
             </View>
             <View className="border-t border-gray-600 pt-2">
@@ -538,7 +585,7 @@ export default function ViewOrderScreen() {
                   size="base"
                   className="text-emerald-500 font-bold"
                 >
-                  R$ {(order.total || 0).toFixed(2).replace(".", ",")}
+                  R$ {(order.precoTotal || 0).toFixed(2).replace(".", ",")}
                 </Typography>
               </View>
             </View>

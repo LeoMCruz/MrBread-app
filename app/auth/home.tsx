@@ -29,8 +29,13 @@ interface MenuCard {
 export default function Home() {
   const { user, logout } = useAuthStore();
 
+  // Função para extrair o primeiro nome
+  const getFirstName = (fullName: string): string => {
+    return fullName.split(' ')[0];
+  };
+
   
-  const handleLogout = () => {
+  const handleLogout = async () => {
     Alert.alert(
       "Sair",
       "Tem certeza que deseja sair da sua conta?",
@@ -42,9 +47,9 @@ export default function Home() {
         {
           text: "Sair",
           style: "destructive",
-          onPress: () => {
-            logout();
-            router.replace('/public/login');
+          onPress: async () => {
+            await logout();
+            // router.replace('/public/login');
           },
         },
       ]
@@ -130,7 +135,7 @@ export default function Home() {
         >
           <View className="mb-8 ">
             <Typography variant="h2" className="text-center text-white mb-2">
-              Bem-vindo, Usuário!
+              Bem-vindo, {user ? getFirstName(user.nome) : 'Usuário'}!
             </Typography>
             <Typography variant="body-secondary" className="text-center">
               Gerencie seus orçamentos e pedidos de venda

@@ -1,151 +1,132 @@
 import React, { useState, useEffect } from "react";
-import { View, ScrollView, Pressable, FlatList, Platform } from "react-native";
+import { View, ScrollView, Pressable, FlatList, Platform, Vibration, Alert, ActivityIndicator } from "react-native";
 import { router } from "expo-router";
+import * as Haptics from "expo-haptics";
 import Typography from "@/components/ui/Typography";
 import Header from "@/components/ui/Header";
 import IconButton from "@/components/ui/IconButton";
 import Input from "@/components/ui/Input";
 import OrdersSkeleton from "@/components/ui/loadingPages/ordersSkeleton";
+import { useOrdersStore } from "@/stores/ordersStore";
+import { Order } from "@/services/ordersService";
+
+// Interface para Order com dados formatados (mesma do store)
+interface FormattedOrder extends Omit<Order, 'idPedido' | 'dataCriacao'> {
+  idPedido: string; // Agora é string (PED-0001)
+  dataCriacao: string; // Data formatada
+}
 import {
   ArrowLeft,
   FileText,
-  Search,
-  Eye,
-  Trash2,
   User,
   Calendar,
   DollarSign,
 } from "lucide-react-native";
 
-interface Order {
-  id: string;
-  orderNumber: string;
-  total: number;
-  customer: {
-    name: string;
-    companyName: string;
-  };
-  createdAt: string;
-  status: "pending" | "completed" | "cancelled";
-}
-
 export default function Orders() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [isPageLoading, setIsPageLoading] = useState(true);
+  const { orders, getOrders } = useOrdersStore();
+  const [isPageLoading, setIsPageLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMoreData, setHasMoreData] = useState(true);
 
-  // Mock data
-  const [orders, setOrders] = useState<Order[]>([
-    {
-      id: "1",
-      orderNumber: "PED-001",
-      total: 1250.5,
-      customer: {
-        name: "Empresa ABC Ltda",
-        companyName: "Empresa ABC Comércio Ltda",
-      },
-      createdAt: "2024-01-15T10:30:00Z",
-      status: "completed",
-    },
-    {
-      id: "2",
-      orderNumber: "PED-002",
-      total: 890.75,
-      customer: {
-        name: "Tech Solutions",
-        companyName: "Tech Solutions Tecnologia Ltda",
-      },
-      createdAt: "2024-01-14T14:20:00Z",
-      status: "pending",
-    },
-    {
-      id: "3",
-      orderNumber: "PED-003",
-      total: 2150.0,
-      customer: {
-        name: "Construções XYZ",
-        companyName: "Construções XYZ Ltda",
-      },
-      createdAt: "2024-01-13T09:15:00Z",
-      status: "completed",
-    },
-    {
-      id: "4",
-      orderNumber: "PED-004",
-      total: 675.25,
-      customer: {
-        name: "Distribuidora 123",
-        companyName: "Distribuidora 123 Comércio Ltda",
-      },
-      createdAt: "2024-01-12T16:45:00Z",
-      status: "cancelled",
-    },
-    {
-      id: "5",
-      orderNumber: "PED-005",
-      total: 1890.3,
-      customer: {
-        name: "Empresa ABC Ltda",
-        companyName: "Empresa ABC Comércio Ltda",
-      },
-      createdAt: "2024-01-11T11:30:00Z",
-      status: "pending",
-    },
-  ]);
-
-  // Simular carregamento inicial da página
+  // Carregar orders da API
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsPageLoading(false);
-    }, 2000);
-
-    return () => clearTimeout(timer);
+    loadOrders();
   }, []);
+
+  const loadOrders = async (params?: { page?: number }) => {
+    // Se é carregamento inicial, usar loading da página
+    if (!params?.page) {
+      setIsPageLoading(true);
+    } else if (params?.page && params.page > 0) {
+      // Se é paginação, usar loading do rodapé
+      setIsLoadingMore(true);
+    }
+    
+    try {
+      const response = await getOrders(params);
+      
+      // Se não há parâmetros de página ou é página 0, resetar paginação
+      if (!params?.page || params.page === 0) {
+        setCurrentPage(0);
+        setHasMoreData(true);
+      }
+      
+      // Se a resposta está vazia (página subsequente), não há mais dados
+      if (params?.page && params.page > 0 && response.length === 0) {
+        setHasMoreData(false);
+      }
+      if (params?.page && params.page > 0 && response.length < 10) {
+        setHasMoreData(false);
+      }
+      
+      setIsPageLoading(false);
+      setIsLoadingMore(false);
+    } catch (error) {
+      console.error('Erro ao carregar orders:', error);
+      setIsPageLoading(false);
+      setIsLoadingMore(false);
+    }
+  };
 
   const handleBack = () => {
     router.back();
   };
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
+  const handleLoadMore = () => {
+    if (!hasMoreData || isLoadingMore || isPageLoading) return;
+    
+    const nextPage = currentPage + 1;
+    setCurrentPage(nextPage);
+    
+    loadOrders({ page: nextPage });
   };
 
-  const filteredOrders = orders.filter(
-    (order) =>
-      order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      order.customer.companyName
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase())
-  );
+  const triggerHaptic = async (style: Haptics.ImpactFeedbackStyle) => {
+    try {
+      await Haptics.impactAsync(style);
+    } catch {
+      // Fallback silencioso - não quebra a experiência
+      if (Platform.OS === "android") {
+        Vibration.vibrate(style === Haptics.ImpactFeedbackStyle.Heavy ? 100 : 50);
+      }
+    }
+  };
 
-  const handleViewOrder = (order: Order) => {
-    const orderData = JSON.stringify(order);
-    router.push(`/auth/view-order?orderData=${encodeURIComponent(orderData)}`);
+  const handleViewOrder = async (order: FormattedOrder) => {
+    await triggerHaptic(Haptics.ImpactFeedbackStyle.Light);
+    router.push(`/auth/view-order?id=${order.id}`);
   };
 
   const handleDeleteOrder = (orderId: string) => {
-    setOrders((prev) => prev.filter((o) => o.id !== orderId));
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("pt-BR", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    Alert.alert(
+      "Excluir Pedido",
+      "Tem certeza que deseja excluir este pedido?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Excluir",
+          style: "destructive",
+          onPress: () => {
+            // TODO: Implementar delete quando tivermos a API
+            console.log('Delete order:', orderId);
+          },
+        },
+      ]
+    );
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "completed":
+      case "CONCLUIDO":
         return "#10B981";
-      case "pending":
+      case "PENDENTE":
         return "#F59E0B";
-      case "cancelled":
+      case "CANCELADO":
         return "#EF4444";
+      case "ATIVO":
+        return "#3B82F6";
       default:
         return "#6B7280";
     }
@@ -153,24 +134,34 @@ export default function Orders() {
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "completed":
+      case "CONCLUIDO":
         return "Concluído";
-      case "pending":
+      case "PENDENTE":
         return "Pendente";
-      case "cancelled":
+      case "CANCELADO":
         return "Cancelado";
+      case "ATIVO":
+        return "Ativo";
       default:
         return "Desconhecido";
     }
   };
 
-  const renderOrderItem = ({ item }: { item: Order }) => (
-    <View className="bg-gray-800 rounded-xl p-4 mb-2 border border-gray-700">
+  const renderOrderItem = ({ item }: { item: FormattedOrder }) => (
+    <Pressable
+      onPress={() => handleViewOrder(item)}
+      onLongPress={async () => {
+        await triggerHaptic(Haptics.ImpactFeedbackStyle.Heavy);
+        handleDeleteOrder(item.id);
+      }}
+      className="bg-gray-800 rounded-xl p-4 mb-4 border border-gray-700 active:bg-gray-700"
+      android_ripple={{ color: "#374151", borderless: false }}
+    >
       <View className="flex-row justify-between items-start mb-3">
         <View className="flex-1">
           <View className="flex-row items-center gap-2 mb-1">
             <Typography variant="h3" className="text-white">
-              {item.orderNumber}
+              {item.idPedido}
             </Typography>
             <View
               className="px-2 py-1 rounded-full"
@@ -186,37 +177,29 @@ export default function Orders() {
             </View>
           </View>
           <Typography variant="body-secondary" className="text-sm mb-1">
-            {item.customer.name}
+            {item.cliente}
           </Typography>
           <Typography variant="body-secondary" className="text-sm mb-2">
-            {item.customer.companyName}
+            {item.razaoSocial}
           </Typography>
           <View className="flex-row items-center gap-4">
             <View className="flex-row items-center gap-2">
               <Calendar size={15} color="#6b7280" />
-              <Typography variant="body-secondary" className="text-xs">
-                {formatDate(item.createdAt)}
+              <Typography variant="body-secondary" className="text-sm">
+                {item.dataCriacao}
               </Typography>
             </View>
           </View>
         </View>
-        <View className="flex-col justify-between items-end gap-4">
-          <View className="flex-row justify-end items-end gap-3">
-            <Pressable onPress={() => handleViewOrder(item)}>
-              <Eye size={16} color="#4A90E2" />
-            </Pressable>
-            <Pressable onPress={() => handleDeleteOrder(item.id)}>
-              <Trash2 size={16} color="#ef4444" />
-            </Pressable>
-          </View>
+        <View className="flex-col justify-between items-end pt-8 ">
           <View className="items-end">
             <Typography variant="h3" className="text-green-500 font-bold">
-              R$ {item.total.toFixed(2).replace(".", ",")}
+              R$ {item.precoTotal.toFixed(2).replace(".", ",")}
             </Typography>
           </View>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 
   // Renderizar skeleton durante carregamento
@@ -254,38 +237,37 @@ export default function Orders() {
       <View
         className={`flex-1 px-6 ${Platform.OS === "ios" ? "pt-6" : "pt-4"}`}
       >
-        <View className="mb-6">
-          <Input
-            placeholder="Buscar pedidos..."
-            leftIcon={<Search size={20} color="#6b7280" />}
-            value={searchQuery}
-            onChangeText={handleSearch}
-            autoCapitalize="none"
-          />
-        </View>
-
         <View className="flex-1 mb-6">
-          {filteredOrders.length === 0 ? (
-            <View className="flex-1 justify-center items-center">
-              <FileText size={48} color="#6b7280" />
-              <Typography variant="h3" className="text-gray-400 mt-4 mb-2">
-                Nenhum pedido encontrado
-              </Typography>
-              <Typography variant="body-secondary" className="text-center">
-                {searchQuery
-                  ? "Tente ajustar sua busca"
-                  : "Nenhum pedido foi criado ainda"}
-              </Typography>
-            </View>
-          ) : (
-            <FlatList
-              data={filteredOrders}
-              renderItem={renderOrderItem}
-              keyExtractor={(item) => item.id}
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 20 }}
-            />
-          )}
+          <FlatList
+            data={orders}
+            renderItem={renderOrderItem}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ 
+              paddingBottom: 20,
+              flexGrow: 1,
+            }}
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.2}
+            ListFooterComponent={() => 
+              isLoadingMore ? (
+                <View className="py-4 items-center">
+                  <ActivityIndicator size="small" color="#3b82f6" />
+                </View>
+              ) : null
+            }
+            ListEmptyComponent={() => (
+              <View className="flex-1 justify-center items-center py-20">
+                <FileText size={48} color="#6b7280" />
+                <Typography variant="h3" className="text-gray-400 mt-4 mb-2">
+                  Nenhum pedido encontrado
+                </Typography>
+                <Typography variant="body-secondary" className="text-center">
+                  Nenhum pedido foi criado ainda
+                </Typography>
+              </View>
+            )}
+          />
         </View>
       </View>
     </View>

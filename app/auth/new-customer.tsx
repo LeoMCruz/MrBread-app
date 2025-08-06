@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   ScrollView,
@@ -7,12 +7,15 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
+import Toast from 'react-native-toast-message';
 import Button from "@/components/ui/Button";
 import Header from "@/components/ui/Header";
 import IconButton from "@/components/ui/IconButton";
 import Input from "@/components/ui/Input";
 import MaskedInput from "@/components/ui/MaskedInput";
 import DocumentInput from "@/components/ui/DocumentInput";
+import { useCustomersStore } from "@/stores/customersStore";
+import { Customer } from "@/services/customersService";
 import {
   ArrowLeft,
   Building,
@@ -23,96 +26,122 @@ import {
   Home,
 } from "lucide-react-native";
 
-interface Customer {
-  id: string;
-  tradeName: string;
-  companyName: string;
-  cnpj: string;
-  state: string;
-  city: string;
-  address: string;
-  email: string;
-  phone: string;
-}
-
 export default function NewCustomer() {
   const params = useLocalSearchParams();
   const mode = (params.mode as "create" | "edit") || "create";
-  const customerData = params.customerData
-    ? JSON.parse(params.customerData as string)
-    : null;
+  
+  // Parse do customerData apenas quando necessário
+  const customerData = (() => {
+    const customerDataParam = params.customerData;
+    if (customerDataParam && typeof customerDataParam === 'string') {
+      try {
+        return JSON.parse(customerDataParam) as Customer;
+      } catch (error) {
+        console.error('Erro ao fazer parse do customerData:', error);
+        return null;
+      }
+    }
+    return null;
+  })();
+
+  const { createCustomer, updateCustomer } = useCustomersStore();
 
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
-    tradeName: "",
-    companyName: "",
+    nomeFantasia: "",
+    razaoSocial: "",
     cnpj: "",
-    state: "",
-    city: "",
-    address: "",
+    estado: "",
+    cidade: "",
+    endereco: "",
     email: "",
-    phone: "",
+    telefone: "",
   });
 
   // Preencher formulário com dados iniciais quando em modo de edição
   useEffect(() => {
-    if (mode === "edit" && customerData) {
+    if (mode === "edit" && customerData?.id) {
       setFormData({
-        tradeName: customerData.tradeName,
-        companyName: customerData.companyName,
-        cnpj: customerData.cnpj,
-        state: customerData.state,
-        city: customerData.city,
-        address: customerData.address,
-        email: customerData.email,
-        phone: customerData.phone,
+        nomeFantasia: customerData.nomeFantasia || "",
+        razaoSocial: customerData.razaoSocial || "",
+        cnpj: customerData.cnpj || "",
+        estado: customerData.estado || "",
+        cidade: customerData.cidade || "",
+        endereco: customerData.endereco || "",
+        email: customerData.email || "",
+        telefone: customerData.telefone || "",
       });
     }
-  }, [mode, customerData]);
+  }, [mode, params.customerData]);
+
+
 
   const handleBack = () => {
     router.back();
   };
 
   const handleSave = async () => {
-    if (!formData.tradeName || !formData.companyName || !formData.cnpj) {
+    if (!formData.nomeFantasia || !formData.razaoSocial || !formData.cnpj) {
+      Toast.show({
+        type: 'error',
+        text1: 'Campos obrigatórios',
+        text2: 'Preencha todos os campos obrigatórios.',
+        position: 'top',
+        visibilityTime: 3000,
+        autoHide: true,
+        topOffset: 60,
+      });
       return;
     }
 
     setIsLoading(true);
 
-    // Simular delay de API
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    if (mode === "edit" && customerData) {
-      const editedCustomer = {
-        id: customerData.id,
-        tradeName: formData.tradeName,
-        companyName: formData.companyName,
-        cnpj: formData.cnpj,
-        state: formData.state,
-        city: formData.city,
-        address: formData.address,
-        email: formData.email,
-        phone: formData.phone,
-      };
-      console.log("Cliente editado:", editedCustomer);
-    } else {
-      const newCustomer = {
-        tradeName: formData.tradeName,
-        companyName: formData.companyName,
-        cnpj: formData.cnpj,
-        state: formData.state,
-        city: formData.city,
-        address: formData.address,
-        email: formData.email,
-        phone: formData.phone,
-      };
-      console.log("Novo cliente:", newCustomer);
+    try {
+      if (mode === "edit" && customerData) {
+        const updatedCustomer = await updateCustomer(customerData.id, {
+          nomeFantasia: formData.nomeFantasia,
+          razaoSocial: formData.razaoSocial,
+          cnpj: formData.cnpj,
+          estado: formData.estado,
+          cidade: formData.cidade,
+          endereco: formData.endereco,
+          email: formData.email,
+          telefone: formData.telefone,
+        });
+        if (updatedCustomer) {
+          console.log("Customer atualizado:", updatedCustomer);
+          router.back();
+        }
+      } else {
+        const newCustomer = await createCustomer({
+          nomeFantasia: formData.nomeFantasia,
+          razaoSocial: formData.razaoSocial,
+          cnpj: formData.cnpj,
+          estado: formData.estado,
+          cidade: formData.cidade,
+          endereco: formData.endereco,
+          telefone: formData.telefone,
+          email: formData.email,
+        });
+        if (newCustomer) {
+          console.log("Customer criado:", newCustomer);
+          router.back();
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao salvar customer:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Erro ao salvar',
+        text2: 'Não foi possível salvar o customer. Tente novamente.',
+        position: 'top',
+        visibilityTime: 3000,
+        autoHide: true,
+        topOffset: 60,
+      });
+    } finally {
+      setIsLoading(false);
     }
-
-    setIsLoading(false);
-    router.back();
   };
 
   return (
@@ -141,9 +170,9 @@ export default function NewCustomer() {
             <Input
               label="Nome Fantasia"
               placeholder="Ex: Empresa ABC Ltda"
-              value={formData.tradeName}
+              value={formData.nomeFantasia}
               onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, tradeName: text }))
+                setFormData((prev) => ({ ...prev, nomeFantasia: text }))
               }
               leftIcon={<Building size={20} color="#6b7280" />}
             />
@@ -151,9 +180,9 @@ export default function NewCustomer() {
             <Input
               label="Razão Social"
               placeholder="Ex: Empresa ABC Comércio Ltda"
-              value={formData.companyName}
+              value={formData.razaoSocial}
               onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, companyName: text }))
+                setFormData((prev) => ({ ...prev, razaoSocial: text }))
               }
               leftIcon={<FileText size={20} color="#6b7280" />}
             />
@@ -169,9 +198,9 @@ export default function NewCustomer() {
             <Input
               label="Estado"
               placeholder="Ex: São Paulo"
-              value={formData.state}
+              value={formData.estado}
               onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, state: text }))
+                setFormData((prev) => ({ ...prev, estado: text }))
               }
               leftIcon={<MapPin size={20} color="#6b7280" />}
             />
@@ -179,9 +208,9 @@ export default function NewCustomer() {
             <Input
               label="Cidade"
               placeholder="Ex: São Paulo"
-              value={formData.city}
+              value={formData.cidade}
               onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, city: text }))
+                setFormData((prev) => ({ ...prev, cidade: text }))
               }
               leftIcon={<MapPin size={20} color="#6b7280" />}
             />
@@ -189,9 +218,9 @@ export default function NewCustomer() {
             <Input
               label="Endereço"
               placeholder="Ex: Rua das Flores, 123"
-              value={formData.address}
+              value={formData.endereco}
               onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, address: text }))
+                setFormData((prev) => ({ ...prev, endereco: text }))
               }
               leftIcon={<MapPin size={20} color="#6b7280" />}
               multiline
@@ -213,9 +242,9 @@ export default function NewCustomer() {
             <MaskedInput
               label="Telefone"
               placeholder="(11) 99999-9999"
-              value={formData.phone}
+              value={formData.telefone}
               onChangeText={(text) =>
-                setFormData((prev) => ({ ...prev, phone: text }))
+                setFormData((prev) => ({ ...prev, telefone: text }))
               }
               leftIcon={<Phone size={20} color="#6b7280" />}
               maskType="phone"
@@ -233,8 +262,8 @@ export default function NewCustomer() {
               onPress={handleSave}
               disabled={
                 isLoading ||
-                !formData.tradeName ||
-                !formData.companyName ||
+                !formData.nomeFantasia ||
+                !formData.razaoSocial ||
                 !formData.cnpj
               }
               loading={isLoading}

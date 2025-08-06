@@ -109,7 +109,6 @@ export default function DocumentInput({
 
   const labelClass = clsx(
     "text-sm font-medium mb-2",
-    error ? "text-red-500" : "text-white",
     labelClassName
   );
 
@@ -147,13 +146,21 @@ export default function DocumentInput({
         >
           <Text className={clsx(
             labelClass,
-            documentType === "cnpj" ? "text-blue-400" : "text-gray-500"
+            disabled 
+              ? "text-gray-600" 
+              : documentType === "cnpj" 
+                ? "text-white" 
+                : "text-gray-500"
           )}>
             CNPJ
           </Text>
         </Pressable>
         
-        <Text className={clsx(labelClass, "mx-2 text-gray-500")}>
+        <Text className={clsx(
+          labelClass, 
+          "mx-2", 
+          disabled ? "text-gray-600" : "text-gray-500"
+        )}>
           |
         </Text>
         
@@ -163,7 +170,11 @@ export default function DocumentInput({
         >
           <Text className={clsx(
             labelClass,
-            documentType === "cpf" ? "text-blue-400" : "text-gray-500"
+            disabled 
+              ? "text-gray-600" 
+              : documentType === "cpf" 
+                ? "text-white" 
+                : "text-gray-500"
           )}>
             CPF
           </Text>

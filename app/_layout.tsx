@@ -4,6 +4,7 @@ import { StatusBar } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuthStore } from '@/stores/authStore';
 import HomeSkeleton from '@/components/ui/loadingPages/homeSkeleton';
+import Toast from 'react-native-toast-message';
 
 export default function RootLayout() {
   const { isLoading } = useAuthStore();
@@ -20,6 +21,7 @@ export default function RootLayout() {
         translucent={false}
       />
       <Slot />
+      <Toast />
     </SafeAreaView>
   );
 } 

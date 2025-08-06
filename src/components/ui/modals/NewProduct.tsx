@@ -3,25 +3,17 @@ import { View } from "react-native";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
+import { Product } from "@/services/itensService";
 import { Package, DollarSign, Edit } from "lucide-react-native";
-
-interface Product {
-  id: string;
-  name: string;
-  price: number;
-  description: string;
-  category: string;
-  code: string;
-}
 
 interface NewProductProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (product: Omit<Product, "id">) => void;
-  onEdit?: (product: Product) => void;
+  onSave: (product: { name: string; description?: string; price: number }) => void;
+  onEdit?: (product: { id: string; name: string; description: string; price: number }) => void;
   loading?: boolean;
   mode?: "create" | "edit";
-  initialData?: Product;
+  initialData?: { id: string; name: string; description?: string; price: number };
 }
 
 export default function NewProduct({
@@ -37,8 +29,6 @@ export default function NewProduct({
     name: "",
     price: "",
     description: "",
-    category: "",
-    code: "",
   });
 
   // Preencher formulário com dados iniciais quando em modo de edição
@@ -47,35 +37,29 @@ export default function NewProduct({
       setFormData({
         name: initialData.name,
         price: initialData.price.toString(),
-        description: initialData.description,
-        category: initialData.category,
-        code: initialData.code,
+        description: initialData.description || "",
       });
     }
   }, [mode, initialData, visible]);
 
   const handleSave = () => {
-    if (!formData.name || !formData.price || !formData.code) {
+    if (!formData.name || !formData.price) {
       return;
     }
 
     if (mode === "edit" && initialData && onEdit) {
-      const editedProduct: Product = {
+      const editedProduct = {
         id: initialData.id,
         name: formData.name,
         price: parseFloat(formData.price),
         description: formData.description,
-        category: formData.category,
-        code: formData.code,
       };
       onEdit(editedProduct);
     } else {
       const newProduct = {
         name: formData.name,
         price: parseFloat(formData.price),
-        description: formData.description,
-        category: formData.category,
-        code: formData.code,
+        description: formData.description || undefined,
       };
       onSave(newProduct);
     }
@@ -85,8 +69,6 @@ export default function NewProduct({
       name: "",
       price: "",
       description: "",
-      category: "",
-      code: "",
     });
   };
 
@@ -96,8 +78,6 @@ export default function NewProduct({
       name: "",
       price: "",
       description: "",
-      category: "",
-      code: "",
     });
     onClose();
   };
@@ -109,8 +89,6 @@ export default function NewProduct({
         name: "",
         price: "",
         description: "",
-        category: "",
-        code: "",
       });
     }
   }, [visible]);

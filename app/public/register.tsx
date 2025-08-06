@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import { Link, router } from "expo-router";
 import { useState } from "react";
+import Toast from 'react-native-toast-message';
 import { Mail, User, Building, FileText, ArrowLeft } from "lucide-react-native";
 import Input from "@/components/ui/Input";
 import DocumentInput from "@/components/ui/DocumentInput";
@@ -57,14 +58,28 @@ export default function Register() {
     validateField(field, formData[field]);
   };
 
+  const showToast = (type: 'success' | 'error', title: string, message?: string) => {
+    Toast.show({
+      type,
+      text1: title,
+      text2: message,
+      position: 'top',
+      visibilityTime: 3000,
+      autoHide: true,
+      topOffset: 60,
+    });
+  };
+
   const handleRegister = async () => {
     const result = registerSchema.safeParse(formData);
 
     if (result.success) {
       try {
         await login(formData.email, formData.password, false);
+        showToast('success', 'Conta criada!', 'Sua conta foi criada com sucesso.');
       } catch (error) {
         console.error("Erro no registro:", error);
+        showToast('error', 'Erro ao criar conta', 'Não foi possível criar sua conta. Tente novamente.');
       }
     } else {
       const fieldErrors: Partial<RegisterFormData> = {};
@@ -75,6 +90,7 @@ export default function Register() {
       });
 
       setErrors(fieldErrors);
+      showToast('error', 'Dados inválidos', 'Verifique os campos e tente novamente.');
     }
   };
 

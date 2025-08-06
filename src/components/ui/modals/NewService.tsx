@@ -3,25 +3,17 @@ import { View } from "react-native";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import Modal from "@/components/ui/Modal";
+import { Service } from "@/services/itensService";
 import { Wrench, DollarSign, Tag, Edit } from "lucide-react-native";
-
-interface Service {
-  id: string;
-  name: string;
-  price: number;
-  description: string;
-  category: string;
-  code: string;
-}
 
 interface NewServiceProps {
   visible: boolean;
   onClose: () => void;
-  onSave: (service: Omit<Service, "id">) => void;
-  onEdit?: (service: Service) => void;
+  onSave: (service: { name: string; description?: string; price: number }) => void;
+  onEdit?: (service: { id: string; name: string; description: string; price: number }) => void;
   loading?: boolean;
   mode?: "create" | "edit";
-  initialData?: Service;
+  initialData?: { id: string; name: string; description?: string; price: number };
 }
 
 export default function NewService({
@@ -37,8 +29,6 @@ export default function NewService({
     name: "",
     price: "",
     description: "",
-    category: "",
-    code: "",
   });
 
   // Preencher formulário com dados iniciais quando em modo de edição
@@ -47,35 +37,29 @@ export default function NewService({
       setFormData({
         name: initialData.name,
         price: initialData.price.toString(),
-        description: initialData.description,
-        category: initialData.category,
-        code: initialData.code,
+        description: initialData.description || "",
       });
     }
   }, [mode, initialData, visible]);
 
   const handleSave = () => {
-    if (!formData.name || !formData.price || !formData.code) {
+    if (!formData.name || !formData.price) {
       return;
     }
 
     if (mode === "edit" && initialData && onEdit) {
-      const editedService: Service = {
+      const editedService = {
         id: initialData.id,
         name: formData.name,
         price: parseFloat(formData.price),
         description: formData.description,
-        category: formData.category,
-        code: formData.code,
       };
       onEdit(editedService);
     } else {
       const newService = {
         name: formData.name,
         price: parseFloat(formData.price),
-        description: formData.description,
-        category: formData.category,
-        code: formData.code,
+        description: formData.description || undefined,
       };
       onSave(newService);
     }
@@ -85,8 +69,6 @@ export default function NewService({
       name: "",
       price: "",
       description: "",
-      category: "",
-      code: "",
     });
   };
 
@@ -96,8 +78,6 @@ export default function NewService({
       name: "",
       price: "",
       description: "",
-      category: "",
-      code: "",
     });
     onClose();
   };
@@ -109,8 +89,6 @@ export default function NewService({
         name: "",
         price: "",
         description: "",
-        category: "",
-        code: "",
       });
     }
   }, [visible]);

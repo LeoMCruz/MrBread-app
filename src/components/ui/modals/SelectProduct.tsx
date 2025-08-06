@@ -1,26 +1,19 @@
-import React, { useState, useMemo } from "react";
-import { View, FlatList, Pressable } from "react-native";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { View, FlatList, Pressable, ActivityIndicator } from "react-native";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import ModalFlatList from "./ModalFlatList";
 import Typography from "@/components/ui/Typography";
 import { Package, Search, CheckCircle, Circle } from "lucide-react-native";
-
-interface Product {
-  id: number;
-  name: string;
-  code: string;
-  description: string;
-  price: number;
-  unit: string;
-}
+import { useItensStore } from "@/stores/itensStore";
+import { Product } from "@/services/itensService";
 
 interface SelectProductProps {
   visible: boolean;
   onClose: () => void;
   onSave: (products: Product[]) => void;
   loading?: boolean;
-  existingProductIds?: number[];
+  existingProductIds?: string[];
 }
 
 export default function SelectProduct({
@@ -32,83 +25,85 @@ export default function SelectProduct({
 }: SelectProductProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProducts, setSelectedProducts] = useState<Product[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMoreData, setHasMoreData] = useState(true);
+  const [isPageLoading, setIsPageLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
-  // Dados mockados de produtos
-  const products: Product[] = [
-    {
-      id: 1,
-      name: "Pão Francês",
-      code: "PF001",
-      description: "Pão francês tradicional",
-      price: 0.5,
-      unit: "Unidade",
-    },
-    {
-      id: 2,
-      name: "Pão de Queijo",
-      code: "PQ002",
-      description: "Pão de queijo caseiro",
-      price: 15.0,
-      unit: "Quilo",
-    },
-    {
-      id: 3,
-      name: "Croissant",
-      code: "CR003",
-      description: "Croissant de manteiga",
-      price: 2.5,
-      unit: "Unidade",
-    },
-    {
-      id: 4,
-      name: "Baguete",
-      code: "BG004",
-      description: "Baguete francesa",
-      price: 1.8,
-      unit: "Unidade",
-    },
-    {
-      id: 5,
-      name: "Pão Integral",
-      code: "PI005",
-      description: "Pão integral saudável",
-      price: 12.0,
-      unit: "Quilo",
-    },
-    {
-      id: 6,
-      name: "Bolo de Chocolate",
-      code: "BC006",
-      description: "Bolo de chocolate caseiro",
-      price: 25.0,
-      unit: "Unidade",
-    },
-    {
-      id: 7,
-      name: "Torta de Frango",
-      code: "TF007",
-      description: "Torta de frango com catupiry",
-      price: 18.0,
-      unit: "Unidade",
-    },
-    {
-      id: 8,
-      name: "Sonho",
-      code: "SN008",
-      description: "Sonho recheado com creme",
-      price: 3.5,
-      unit: "Unidade",
-    },
-  ];
+  // Store
+  const { products, getProducts } = useItensStore();
 
-  // Filtrar produtos baseado na busca
-  const filteredProducts = useMemo(() => {
-    return products.filter(
-      (product) =>
-        product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        product.code.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm]);
+  // Carregamento inicial
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async (params?: { search?: string; page?: number }) => {
+    // Se é carregamento inicial, usar loading da página
+    if (!params?.page && !params?.search) {
+      setIsPageLoading(true);
+    } else if (params?.page && params.page > 0) {
+      // Se é paginação, usar loading do rodapé
+      setIsLoadingMore(true);
+    }
+    
+    try {
+      const response = await getProducts(params);
+      
+      // Se não há parâmetros de página ou é página 0, resetar paginação
+      if (!params?.page || params.page === 0) {
+        setCurrentPage(0);
+        setHasMoreData(true);
+      }
+      
+      // Se a resposta está vazia (página subsequente), não há mais dados
+      if (params?.page && params.page > 0 && response.length === 0) {
+        setHasMoreData(false);
+      }
+      if (params?.page && params.page > 0 && response.length < 10) {
+        setHasMoreData(false);
+      }
+      
+      setIsPageLoading(false);
+      setIsLoadingMore(false);
+    } catch (error) {
+      console.error('Erro ao carregar produtos:', error);
+      setIsPageLoading(false);
+      setIsLoadingMore(false);
+      setIsSearching(false);
+    }
+  };
+
+  const handleSearch = async (query: string) => {
+    setSearchTerm(query);
+    
+    // Busca com delay
+    const timer = setTimeout(async () => {
+      if (query !== "") {
+        setIsSearching(true);
+        await loadProducts({ search: query });
+        setIsSearching(false);
+      } else {
+        await loadProducts();
+        setIsSearching(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  };
+
+  const handleLoadMore = () => {
+    if (!hasMoreData || isLoadingMore || isPageLoading || isSearching) return;
+    
+    const nextPage = currentPage + 1;
+    setCurrentPage(nextPage);
+    
+    loadProducts({ 
+      search: searchTerm, 
+      page: nextPage
+    });
+  };
 
   // Verificar se produto está selecionado
   const isProductSelected = (product: Product) => {
@@ -158,7 +153,7 @@ export default function SelectProduct({
                 <Circle size={16} color="#6b7280" />
               )}
               <Typography variant="body" size="sm" className="font-medium">
-                {item.code} - {item.name}
+                {item.name}
               </Typography>
             </View>
             <Typography
@@ -177,9 +172,6 @@ export default function SelectProduct({
             >
               R$ {item.price.toFixed(2).replace(".", ",")}
             </Typography>
-            <Typography variant="caption" size="xs" className="text-gray-400">
-              {item.unit}
-            </Typography>
           </View>
         </View>
       </Pressable>
@@ -195,6 +187,11 @@ export default function SelectProduct({
   const handleClose = () => {
     setSelectedProducts([]);
     setSearchTerm("");
+    setCurrentPage(0);
+    setHasMoreData(true);
+    setIsPageLoading(false);
+    setIsLoadingMore(false);
+    setIsSearching(false);
     onClose();
   };
 
@@ -231,18 +228,53 @@ export default function SelectProduct({
             placeholder="Buscar produtos..."
             leftIcon={<Search size={20} color="#6b7280" />}
             value={searchTerm}
-            onChangeText={setSearchTerm}
+            onChangeText={handleSearch}
             autoCapitalize="none"
           />
         </View>
 
-        <FlatList
-          data={filteredProducts}
-          renderItem={renderProductItem}
-          keyExtractor={(item) => item.id.toString()}
-          showsVerticalScrollIndicator={false}
-          className="flex-1"
-        />
+        {isPageLoading ? (
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#3b82f6" />
+          </View>
+        ) : isSearching ? (
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#3b82f6" />
+            <Typography variant="body-secondary" className="text-gray-400 mt-4">
+              Buscando produtos...
+            </Typography>
+          </View>
+        ) : (
+          <FlatList
+            data={products}
+            renderItem={renderProductItem}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            className="flex-1"
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.2}
+            ListFooterComponent={() => 
+              isLoadingMore ? (
+                <View className="py-4 items-center">
+                  <ActivityIndicator size="small" color="#3b82f6" />
+                </View>
+              ) : null
+            }
+            ListEmptyComponent={() => (
+              <View className="flex-1 justify-center items-center py-20">
+                <Package size={48} color="#6b7280" />
+                <Typography variant="h3" className="text-gray-400 mt-4 mb-2">
+                  Nenhum produto encontrado
+                </Typography>
+                <Typography variant="body-secondary" className="text-center">
+                  {searchTerm
+                    ? "Tente ajustar sua busca"
+                    : "Nenhum produto cadastrado"}
+                </Typography>
+              </View>
+            )}
+          />
+        )}
 
         {selectedProducts.length > 0 && (
           <View className="bg-blue-900/20 border border-blue-500 rounded-lg p-3">

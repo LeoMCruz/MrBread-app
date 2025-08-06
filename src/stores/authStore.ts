@@ -1,10 +1,20 @@
 import { create } from "zustand";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { TokenManager } from "@/services/axios";
+import { login as authLogin, getUserLoggedData } from "@/services/authService";
+import { showSuccessToast, showErrorToast } from "@/services/axios";
 
 interface User {
   id: string;
-  name: string;
-  email: string;
+  username: string;
+  nome: string;
+  status: string;
+  perfilAcesso: string;
+  nomeOrganizacao: string;
+  organizacaoId: string;
+  cnpj: string;
+  dataCriacao: string;
+  dataAlteracao: string;
 }
 
 interface SavedCredentials {
@@ -26,6 +36,7 @@ interface AuthState {
   saveCredentials: (email: string, password: string) => Promise<void>;
   loadSavedCredentials: () => Promise<SavedCredentials | null>;
   clearSavedCredentials: () => Promise<void>;
+  getUserLoggedData: () => Promise<void>;
 }
 
 // Chaves para AsyncStorage
@@ -41,20 +52,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   savedCredentials: null,
 
   login: async (email: string, password: string, remember: boolean) => {
-    console.log("Login");
-    set({ isLoading: true });
+    console.log("Login iniciado");
+    // set({ isLoading: true })
 
     try {
-      // Mock: simula delay de API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Mock: dados do usuário
-      const mockUser: User = {
-        id: "1",
-        name: "Usuário Mock",
-        email: email,
-      };
-
+      // Fazer login na API
+      const { user, token } = await authLogin(email, password);
+      
+      // Salvar token no SecureStore
+      const tokenManager = TokenManager.getInstance();
+      await tokenManager.saveToken(token);
+      await get().getUserLoggedData();
+      
       // Salvar credenciais se "lembrar login" estiver marcado
       if (remember) {
         await get().saveCredentials(email, password);
@@ -64,24 +73,103 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
       set({
         isAuthenticated: true,
-        user: mockUser,
         isLoading: false,
         rememberMe: remember,
       });
-    } catch (error) {
-      set({ isLoading: false });
+
+      showSuccessToast('Login realizado com sucesso!', 'Bem-vindo!');
+      console.log("Login realizado com sucesso:", user.email);
+    } catch (error: any) {
+      // set({ isLoading: false })
+      console.error("Erro no login:", error);
+      showErrorToast(error.message);
       throw error;
     }
   },
 
-  logout: () => {
-    console.log("Logout chamado - mudando isAuthenticated para false");
-    set({
-      isAuthenticated: false,
-      user: null,
-      isLoading: false,
-    });
-    console.log("Estado atualizado - isAuthenticated deve ser false");
+  logout: async () => {
+    console.log("Logout iniciado");
+    set({ isLoading: true });
+
+    try {
+      // Limpar token do SecureStore
+      const tokenManager = TokenManager.getInstance();
+      await tokenManager.clearToken();
+      
+      // Limpar credenciais salvas
+      // await get().clearSavedCredentials();
+
+      set({
+        isAuthenticated: false,
+        user: null,
+        isLoading: false,
+        rememberMe: false,
+      });
+
+      showSuccessToast('Logout realizado com sucesso!', 'Até logo!');
+      console.log("Logout realizado com sucesso");
+    } catch (error) {
+      console.error("Erro no logout:", error);
+      // Mesmo com erro, limpar estado local
+      set({
+        isAuthenticated: false,
+        user: null,
+        isLoading: false,
+        rememberMe: false,
+      });
+    }
+  },
+
+  getUserLoggedData: async () => {
+    console.log("Verificando status de autenticação");
+    set({ isLoading: true });
+
+    try {
+      const tokenManager = TokenManager.getInstance();
+      await tokenManager.initialize();
+      
+      const token = tokenManager.getAccessToken();
+      
+      if (token) {
+        // Buscar dados do usuário na API
+        const user = await getUserLoggedData();
+        
+        if (user) {
+          set({
+            isAuthenticated: true,
+            user: user,
+            isLoading: false,
+          });
+          
+          console.log("Usuário autenticado:", user.username);
+        } else {
+          // Falha ao buscar dados do usuário (token inválido ou erro na API)
+          set({
+            isAuthenticated: false,
+            user: null,
+            isLoading: false,
+          });
+          
+          console.log("Falha ao buscar dados do usuário");
+        }
+      } else {
+        // Token não existe
+        set({
+          isAuthenticated: false,
+          user: null,
+          isLoading: false,
+        });
+        
+        console.log("Usuário não autenticado");
+      }
+    } catch (error) {
+      console.error("Erro ao verificar autenticação:", error);
+      set({
+        isAuthenticated: false,
+        user: null,
+        isLoading: false,
+      });
+    }
   },
 
   setLoading: (loading: boolean) => {

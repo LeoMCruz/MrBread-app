@@ -18,8 +18,7 @@ import { useAuthStore } from "@/stores/authStore";
 
 export default function Login() {
   const { 
-    login, 
-    isLoading, 
+    login,  
     rememberMe, 
     setRememberMe, 
     loadSavedCredentials 
@@ -31,7 +30,7 @@ export default function Login() {
   });
   const [errors, setErrors] = useState<Partial<LoginFormData>>({});
   const [showPassword, setShowPassword] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false);
   // Carregar credenciais salvas na inicialização
   useEffect(() => {
     const initializeCredentials = async () => {
@@ -74,13 +73,17 @@ export default function Login() {
   };
 
   const handleLogin = async () => {
+
     const result = loginSchema.safeParse(formData);
 
     if (result.success) {
       try {
+        setIsLoading(true);
         await login(formData.email, formData.password, rememberMe);
       } catch (error) {
         console.error("Erro no login:", error);
+      } finally {
+        setIsLoading(false);
       }
     } else {
       const fieldErrors: Partial<LoginFormData> = {};

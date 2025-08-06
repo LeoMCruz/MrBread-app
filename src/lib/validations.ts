@@ -81,6 +81,28 @@ export const forgotPasswordSchema = z.object({
     }, "CPF ou CNPJ inválido"),
 });
 
+// Schema para alterar senha
+export const changePasswordSchema = z
+  .object({
+    currentPassword: z
+      .string()
+      .min(1, "Senha atual é obrigatória")
+      .min(8, "Senha atual deve ter pelo menos 8 caracteres"),
+
+    newPassword: z
+      .string()
+      .min(1, "Nova senha é obrigatória")
+      .min(8, "Nova senha deve ter pelo menos 8 caracteres"),
+
+    confirmPassword: z
+      .string()
+      .min(1, "Confirmação de senha é obrigatória"),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: "Senhas não coincidem",
+    path: ["confirmPassword"],
+  });
+
 // Função para validar CPF
 function validateCPF(cpf: string): boolean {
   // Remove caracteres não numéricos
@@ -152,3 +174,4 @@ function validateCNPJ(cnpj: string): boolean {
 export type LoginFormData = z.infer<typeof loginSchema>;
 export type RegisterFormData = z.infer<typeof registerSchema>;
 export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>;
+export type ChangePasswordFormData = z.infer<typeof changePasswordSchema>;

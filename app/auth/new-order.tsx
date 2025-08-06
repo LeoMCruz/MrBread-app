@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
 } from "react-native";
 import { router } from "expo-router";
+import Toast from 'react-native-toast-message';
 import {
   User,
   Package,
@@ -126,7 +127,26 @@ export default function NewOrderScreen() {
 
   // Função para selecionar cliente
   const handleSelectCustomer = (customer: any) => {
-    updateOrderState({ customer });
+    // Mapear dados da API para o formato esperado pela interface local
+    const mappedCustomer: Customer = {
+      id: customer.id,
+      name: customer.nomeFantasia,
+      cnpj: customer.cnpj.length < 15 ? `CPF: ${customer.cnpj}` : `CNPJ: ${customer.cnpj}`,
+      city: `${customer.cidade} - ${customer.estado}`,
+    };
+    updateOrderState({ customer: mappedCustomer });
+  };
+
+  const showToast = (type: 'success' | 'error', title: string, message?: string) => {
+    Toast.show({
+      type,
+      text1: title,
+      text2: message,
+      position: 'top',
+      visibilityTime: 3000,
+      autoHide: true,
+      topOffset: 60,
+    });
   };
 
   // Função para adicionar produtos selecionados
@@ -141,6 +161,7 @@ export default function NewOrderScreen() {
 
     if (newProducts.length === 0) {
       // Todos os produtos já existem na lista
+      showToast('error', 'Produto já adicionado', 'Este produto já está na lista.');
       setProductModalVisible(false);
       return;
     }
@@ -158,6 +179,7 @@ export default function NewOrderScreen() {
     updateOrderState({
       products: [...orderState.products, ...newOrderProducts],
     });
+    showToast('success', 'Produtos adicionados!', `${newProducts.length} produto(s) adicionado(s) ao pedido.`);
     setProductModalVisible(false);
   };
 
@@ -173,6 +195,7 @@ export default function NewOrderScreen() {
 
     if (newServices.length === 0) {
       // Todos os serviços já existem na lista
+      showToast('error', 'Serviço já adicionado', 'Este serviço já está na lista.');
       setServiceModalVisible(false);
       return;
     }
@@ -190,25 +213,32 @@ export default function NewOrderScreen() {
     updateOrderState({
       services: [...orderState.services, ...newOrderServices],
     });
+    showToast('success', 'Serviços adicionados!', `${newServices.length} serviço(s) adicionado(s) ao pedido.`);
     setServiceModalVisible(false);
   };
 
   // Função para remover item
   const removeItem = (type: "product" | "service", id: number) => {
     if (type === "product") {
+      const product = orderState.products.find((p) => p.id === id);
       updateOrderState({
         products: orderState.products.filter((p) => p.id !== id),
       });
+      showToast('success', 'Produto removido', `${product?.name} foi removido do pedido.`);
     } else {
+      const service = orderState.services.find((s) => s.id === id);
       updateOrderState({
         services: orderState.services.filter((s) => s.id !== id),
       });
+      showToast('success', 'Serviço removido', `${service?.name} foi removido do pedido.`);
     }
   };
 
   // Função para remover cliente
   const removeCustomer = () => {
+    const customerName = orderState.customer?.name;
     updateOrderState({ customer: null });
+    showToast('success', 'Cliente removido', `${customerName} foi removido do pedido.`);
   };
 
   // Função para atualizar quantidade de produto
@@ -268,9 +298,31 @@ export default function NewOrderScreen() {
   };
 
   // Função para salvar pedido (chamada da API)
-  const handleSaveOrder = () => {
-    // TODO: Implementar lógica de salvamento
-    console.log("Salvando pedido:", orderState);
+  const handleSaveOrder = async () => {
+    try {
+      // Validar se há cliente selecionado
+      if (!orderState.customer) {
+        showToast('error', 'Cliente obrigatório', 'Selecione um cliente para o pedido.');
+        return;
+      }
+
+      // Validar se há pelo menos um produto ou serviço
+      if (orderState.products.length === 0 && orderState.services.length === 0) {
+        showToast('error', 'Itens obrigatórios', 'Adicione pelo menos um produto ou serviço ao pedido.');
+        return;
+      }
+
+      // Simular delay de API
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      
+      // TODO: Implementar lógica de salvamento
+      console.log("Salvando pedido:", orderState);
+      
+      showToast('success', 'Pedido salvo!', 'Pedido foi salvo com sucesso.');
+      router.back();
+    } catch (error) {
+      showToast('error', 'Erro ao salvar', 'Não foi possível salvar o pedido. Tente novamente.');
+    }
   };
 
   return (
@@ -675,7 +727,7 @@ export default function NewOrderScreen() {
         visible={serviceModalVisible}
         onClose={() => setServiceModalVisible(false)}
         onSave={handleAddServices}
-        existingServiceIds={orderState.services.map((s) => s.serviceId)}
+        existingServiceIds={orderState.services.map((s) => s.serviceId.toString())}
       />
     </View>
   );

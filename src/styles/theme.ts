@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+
 // Cores base do tema
 export const baseColors = {
   // Cores principais
@@ -47,7 +49,7 @@ export const baseColors = {
 
 // Hook para usar as cores base
 export const useBaseColors = (colorScheme?: any) => {
-  return baseColors;
+  return useMemo(() => baseColors, []);
 };
 
 // Tipos TypeScript

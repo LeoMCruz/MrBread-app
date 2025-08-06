@@ -84,7 +84,7 @@ export default function ModalFlatList({
         }),
       ]).start();
     }
-  }, [visible]);
+  }, [visible, scale, opacity]);
 
   const handleClose = () => {
     if (!closeEnabled) return;

@@ -1,25 +1,19 @@
-import React, { useState, useMemo } from "react";
-import { View, FlatList, Pressable } from "react-native";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
+import { View, FlatList, Pressable, ActivityIndicator } from "react-native";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import ModalFlatList from "./ModalFlatList";
 import Typography from "@/components/ui/Typography";
 import { Wrench, Search, CheckCircle, Circle } from "lucide-react-native";
-
-interface Service {
-  id: number;
-  name: string;
-  code: string;
-  description: string;
-  price: number;
-}
+import { useItensStore } from "@/stores/itensStore";
+import { Service } from "@/services/itensService";
 
 interface SelectServiceProps {
   visible: boolean;
   onClose: () => void;
   onSave: (services: Service[]) => void;
   loading?: boolean;
-  existingServiceIds?: number[];
+  existingServiceIds?: string[];
 }
 
 export default function SelectService({
@@ -31,75 +25,85 @@ export default function SelectService({
 }: SelectServiceProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasMoreData, setHasMoreData] = useState(true);
+  const [isPageLoading, setIsPageLoading] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
-  // Dados mockados de serviços
-  const services: Service[] = [
-    {
-      id: 1,
-      name: "Entrega",
-      code: "EN001",
-      description: "Serviço de entrega em domicílio",
-      price: 8.0,
-    },
-    {
-      id: 2,
-      name: "Embalagem",
-      code: "EM002",
-      description: "Embalagem especial para presentes",
-      price: 3.0,
-    },
-    {
-      id: 3,
-      name: "Montagem",
-      code: "MO003",
-      description: "Montagem de cestas e arranjos",
-      price: 15.0,
-    },
-    {
-      id: 4,
-      name: "Personalização",
-      code: "PE004",
-      description: "Personalização de produtos",
-      price: 5.0,
-    },
-    {
-      id: 5,
-      name: "Instalação",
-      code: "IN005",
-      description: "Instalação de equipamentos",
-      price: 25.0,
-    },
-    {
-      id: 6,
-      name: "Manutenção",
-      code: "MA006",
-      description: "Serviço de manutenção preventiva",
-      price: 30.0,
-    },
-    {
-      id: 7,
-      name: "Consultoria",
-      code: "CO007",
-      description: "Consultoria técnica especializada",
-      price: 50.0,
-    },
-    {
-      id: 8,
-      name: "Treinamento",
-      code: "TR008",
-      description: "Treinamento de equipe",
-      price: 80.0,
-    },
-  ];
+  // Store
+  const { services, getServices } = useItensStore();
 
-  // Filtrar serviços baseado na busca
-  const filteredServices = useMemo(() => {
-    return services.filter(
-      (service) =>
-        service.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        service.code.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [searchTerm]);
+  // Carregamento inicial
+  useEffect(() => {
+    loadServices();
+  }, []);
+
+  const loadServices = async (params?: { search?: string; page?: number }) => {
+    // Se é carregamento inicial, usar loading da página
+    if (!params?.page && !params?.search) {
+      setIsPageLoading(true);
+    } else if (params?.page && params.page > 0) {
+      // Se é paginação, usar loading do rodapé
+      setIsLoadingMore(true);
+    }
+    
+    try {
+      const response = await getServices(params);
+      
+      // Se não há parâmetros de página ou é página 0, resetar paginação
+      if (!params?.page || params.page === 0) {
+        setCurrentPage(0);
+        setHasMoreData(true);
+      }
+      
+      // Se a resposta está vazia (página subsequente), não há mais dados
+      if (params?.page && params.page > 0 && response.length === 0) {
+        setHasMoreData(false);
+      }
+      if (params?.page && params.page > 0 && response.length < 10) {
+        setHasMoreData(false);
+      }
+      
+      setIsPageLoading(false);
+      setIsLoadingMore(false);
+    } catch (error) {
+      console.error('Erro ao carregar serviços:', error);
+      setIsPageLoading(false);
+      setIsLoadingMore(false);
+      setIsSearching(false);
+    }
+  };
+
+  const handleSearch = async (query: string) => {
+    setSearchTerm(query);
+    
+    // Busca com delay
+    const timer = setTimeout(async () => {
+      if (query !== "") {
+        setIsSearching(true);
+        await loadServices({ search: query });
+        setIsSearching(false);
+      } else {
+        await loadServices();
+        setIsSearching(false);
+      }
+    }, 500);
+
+    return () => clearTimeout(timer);
+  };
+
+  const handleLoadMore = () => {
+    if (!hasMoreData || isLoadingMore || isPageLoading || isSearching) return;
+    
+    const nextPage = currentPage + 1;
+    setCurrentPage(nextPage);
+    
+    loadServices({ 
+      search: searchTerm, 
+      page: nextPage
+    });
+  };
 
   // Verificar se serviço está selecionado
   const isServiceSelected = (service: Service) => {
@@ -148,9 +152,9 @@ export default function SelectService({
               ) : (
                 <Circle size={16} color="#6b7280" />
               )}
-              <Typography variant="body" size="sm" className="font-medium">
-                {item.code} - {item.name}
-              </Typography>
+                           <Typography variant="body" size="sm" className="font-medium">
+               {item.name}
+             </Typography>
             </View>
             <Typography
               variant="caption"
@@ -183,6 +187,11 @@ export default function SelectService({
   const handleClose = () => {
     setSelectedServices([]);
     setSearchTerm("");
+    setCurrentPage(0);
+    setHasMoreData(true);
+    setIsPageLoading(false);
+    setIsLoadingMore(false);
+    setIsSearching(false);
     onClose();
   };
 
@@ -219,18 +228,53 @@ export default function SelectService({
             placeholder="Buscar serviços..."
             leftIcon={<Search size={20} color="#6b7280" />}
             value={searchTerm}
-            onChangeText={setSearchTerm}
+            onChangeText={handleSearch}
             autoCapitalize="none"
           />
         </View>
 
-        <FlatList
-          data={filteredServices}
-          renderItem={renderServiceItem}
-          keyExtractor={(item) => item.id.toString()}
-          showsVerticalScrollIndicator={false}
-          className="flex-1"
-        />
+        {isPageLoading ? (
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#3b82f6" />
+          </View>
+        ) : isSearching ? (
+          <View className="flex-1 justify-center items-center">
+            <ActivityIndicator size="large" color="#3b82f6" />
+            <Typography variant="body-secondary" className="text-gray-400 mt-4">
+              Buscando serviços...
+            </Typography>
+          </View>
+        ) : (
+          <FlatList
+            data={services}
+            renderItem={renderServiceItem}
+            keyExtractor={(item) => item.id}
+            showsVerticalScrollIndicator={false}
+            className="flex-1"
+            onEndReached={handleLoadMore}
+            onEndReachedThreshold={0.2}
+            ListFooterComponent={() => 
+              isLoadingMore ? (
+                <View className="py-4 items-center">
+                  <ActivityIndicator size="small" color="#3b82f6" />
+                </View>
+              ) : null
+            }
+            ListEmptyComponent={() => (
+              <View className="flex-1 justify-center items-center py-20">
+                <Wrench size={48} color="#6b7280" />
+                <Typography variant="h3" className="text-gray-400 mt-4 mb-2">
+                  Nenhum serviço encontrado
+                </Typography>
+                <Typography variant="body-secondary" className="text-center">
+                  {searchTerm
+                    ? "Tente ajustar sua busca"
+                    : "Nenhum serviço cadastrado"}
+                </Typography>
+              </View>
+            )}
+          />
+        )}
 
         {selectedServices.length > 0 && (
           <View className="bg-orange-900/20 border border-orange-500 rounded-lg p-3">
