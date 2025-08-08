@@ -36,8 +36,10 @@ export default function SelectProduct({
 
   // Carregamento inicial
   useEffect(() => {
-    loadProducts();
-  }, []);
+    if (visible) {
+      loadProducts();
+    }
+  }, [visible]);
 
   const loadProducts = async (params?: { search?: string; page?: number }) => {
     // Se é carregamento inicial, usar loading da página

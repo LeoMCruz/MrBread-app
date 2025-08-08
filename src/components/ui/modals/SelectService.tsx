@@ -36,8 +36,10 @@ export default function SelectService({
 
   // Carregamento inicial
   useEffect(() => {
-    loadServices();
-  }, []);
+    if (visible) {
+      loadServices();
+    }
+  }, [visible]);
 
   const loadServices = async (params?: { search?: string; page?: number }) => {
     // Se é carregamento inicial, usar loading da página

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { View, ScrollView, Platform, Alert, Pressable } from "react-native";
+import { View, ScrollView, Platform, Alert, Pressable, ActivityIndicator } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import Toast from "react-native-toast-message";
 import {
@@ -13,18 +13,23 @@ import {
   CheckCircle,
   Clock,
   XCircle,
+  FileDown,
 } from "lucide-react-native";
 import Header from "@/components/ui/Header";
 import Typography from "@/components/ui/Typography";
 import IconButton from "@/components/ui/IconButton";
 import ViewOrderSkeleton from "@/components/ui/loadingPages/viewOrderSkeleton";
 import { useOrdersStore } from "@/stores/ordersStore";
+import { usePDFStore } from "@/stores/pdfStore";
 
 export default function ViewOrderScreen() {
   const params = useLocalSearchParams();
-  const { getOrderById, selectedOrder } = useOrdersStore();
+  const { getOrderById, selectedOrder, updateOrder } = useOrdersStore();
+  const { generateOrderPDF } = usePDFStore();
   const [isPageLoading, setIsPageLoading] = useState(true);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
 
   useEffect(() => {
     if (params.id) {
@@ -108,20 +113,51 @@ export default function ViewOrderScreen() {
           text: "Confirmar",
           onPress: async () => {
             try {
-              // TODO: Implementar alteração de status na API
+              setIsLoading(true);
+              
+              if (!selectedOrder) {
+                throw new Error("Pedido não encontrado");
+              }
+
+              const itens = selectedOrder.itens.map(item => ({
+                produto: item.produto,
+                servico: item.servico,
+                quantidade: item.quantidade,
+                precoUnitario: item.precoUnitario
+              }));
+
+              const updateData = {
+                id: selectedOrder.id,
+                itens: itens,
+                cliente: selectedOrder.cliente,
+                status: newStatus
+              };
+
+              const response = await updateOrder(updateData);
+              
+              if (response && response.status) {
+                const updatedOrder = {
+                  ...selectedOrder,
+                  status: response.status
+                };
+                
+                useOrdersStore.setState({ selectedOrder: updatedOrder });
+              }
+              
               showToast(
                 "success",
                 "Status alterado!",
-                `Pedido ${
-                  selectedOrder?.idPedido
-                } foi marcado como ${statusText.toLowerCase()}.`
+                `Pedido ${selectedOrder.idPedido} foi marcado como ${statusText.toLowerCase()}.`
               );
             } catch (error) {
+              console.error("Erro ao alterar status:", error);
               showToast(
                 "error",
                 "Erro ao alterar",
                 "Não foi possível alterar o status do pedido."
               );
+            } finally {
+              setIsLoading(false);
             }
           },
         },
@@ -138,6 +174,28 @@ export default function ViewOrderScreen() {
   ) => {
     setShowDropdown(false);
     handleStatusChange(newStatus);
+  };
+
+  const handleGeneratePDF = async () => {
+    if (!selectedOrder) return;
+    
+    try {
+      setIsGeneratingPDF(true);
+      
+      // Converter FormattedOrderDetail para OrderDetail
+      const orderDetail = {
+        ...selectedOrder,
+        idPedido: parseInt(selectedOrder.idPedido.replace('PED-', '')),
+        dataCriacao: selectedOrder.dataCriacao,
+        dataAlteracao: selectedOrder.dataAlteracao,
+      };
+      
+      await generateOrderPDF(orderDetail);
+    } catch (error) {
+      console.error("Erro ao gerar PDF:", error);
+    } finally {
+      setIsGeneratingPDF(false);
+    }
   };
 
   // Função para capitalizar primeira letra
@@ -196,6 +254,19 @@ export default function ViewOrderScreen() {
             variant="ghost"
           />
         }
+        rightActions={
+          <Pressable
+              onPress={handleGeneratePDF}
+              disabled={isGeneratingPDF}
+              className="p-2 rounded-lg bg-gray-800"
+            >
+              {isGeneratingPDF ? (
+                <ActivityIndicator size="small" color="#3b82f6" />
+              ) : (
+                <FileDown size={16} color="#f7f3f3" />
+              )}
+            </Pressable>
+        }
       />
 
       <ScrollView
@@ -210,13 +281,17 @@ export default function ViewOrderScreen() {
               className="px-3 py-1 rounded-full"
               style={{ backgroundColor: getStatusColor(order.status) + "20" }}
             >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#F3F5F7" />
+              ) : (
               <Typography
                 variant="caption"
                 size="xs"
                 style={{ color: getStatusColor(order.status) }}
               >
-                {getStatusText(order.status)}
-              </Typography>
+                  {getStatusText(order.status)}
+                </Typography>
+              )}
             </View>
             <Pressable
               onPress={showStatusMenu}

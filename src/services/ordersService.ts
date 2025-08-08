@@ -94,3 +94,65 @@ export const getOrderById = async (id: string): Promise<OrderDetail> => {
   const response = await apiService.get<OrderDetail>(`/pedidos/${id}`);
   return response;
 };
+
+// Interfaces para criação de pedido
+export interface CreateOrderItem {
+  produto: string | null;
+  servico: string | null;
+  quantidade: number;
+  precoUnitario: number;
+}
+
+export interface CreateOrderRequest {
+  cliente: string;
+  itens: CreateOrderItem[];
+}
+
+export interface CreateOrderResponse {
+  id: string;
+  idPedido: number;
+  precoTotal: number;
+  status: string;
+  dataCriacao: string;
+}
+
+export const createOrder = async (data: CreateOrderRequest): Promise<CreateOrderResponse> => {
+  const response = await apiService.post<CreateOrderResponse>('/pedidos', {
+    cliente: data.cliente,
+    itens: data.itens
+  });
+  return response;
+};
+
+// Interfaces para atualização de pedido
+export interface UpdateOrderItem {
+  produto: string | null;
+  servico: string | null;
+  quantidade: number;
+  precoUnitario: number;
+}
+
+export interface UpdateOrderRequest {
+  id: string;
+  itens: UpdateOrderItem[];
+  cliente: string;
+  status: string;
+}
+
+export interface UpdateOrderResponse {
+  id: string;
+  idPedido: number;
+  precoTotal: number;
+  status: string;
+  dataAlteracao: string;
+}
+
+export const updateOrder = async (data: UpdateOrderRequest): Promise<UpdateOrderResponse> => {
+  const response = await apiService.put<UpdateOrderResponse>('/pedidos', {
+    id: data.id,
+    itens: data.itens,
+    cliente: data.cliente,
+    status: data.status
+  });
+  return response;
+};

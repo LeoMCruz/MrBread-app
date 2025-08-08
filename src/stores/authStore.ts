@@ -13,6 +13,10 @@ interface User {
   nomeOrganizacao: string;
   organizacaoId: string;
   cnpj: string;
+  telefone?: string;
+  cidade?: string;
+  estado?: string;
+  endereco?: string;
   dataCriacao: string;
   dataAlteracao: string;
 }

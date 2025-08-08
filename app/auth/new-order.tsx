@@ -27,6 +27,7 @@ import InputMultiLine from "@/components/ui/InputMultiLine";
 import SelectProduct from "@/components/ui/modals/SelectProduct";
 import SelectService from "@/components/ui/modals/SelectService";
 import SelectCustomer from "@/components/ui/modals/SelectCustomer";
+import { useOrdersStore } from "@/stores/ordersStore";
 
 // Tipos
 interface Customer {
@@ -86,6 +87,9 @@ export default function NewOrderScreen() {
   const [customerModalVisible, setCustomerModalVisible] = useState(false);
   const [productModalVisible, setProductModalVisible] = useState(false);
   const [serviceModalVisible, setServiceModalVisible] = useState(false);
+
+  // Store
+  const { createOrder } = useOrdersStore();
 
   // Estado do pedido
   const [orderState, setOrderState] = useState<OrderState>({
@@ -312,14 +316,54 @@ export default function NewOrderScreen() {
         return;
       }
 
-      // Simular delay de API
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // Mapear produtos para o formato da API
+      const productItems = orderState.products.map(product => ({
+        produto: product.productId.toString(),
+        servico: null,
+        quantidade: product.quantity,
+        precoUnitario: product.price
+      }));
+
+      // Mapear serviços para o formato da API
+      const serviceItems = orderState.services.map(service => ({
+        produto: null,
+        servico: service.serviceId.toString(),
+        quantidade: service.quantity,
+        precoUnitario: service.price
+      }));
+
+      // Combinar todos os itens
+      const allItems = [...productItems, ...serviceItems];
+
+      // Preparar dados para a API
+      const orderData = {
+        cliente: orderState.customer.id.toString(),
+        itens: allItems
+      };
+
+      // Chamar a API
+      const response = await createOrder(orderData);
       
-      // TODO: Implementar lógica de salvamento
-      console.log("Salvando pedido:", orderState);
-      
-      showToast('success', 'Pedido salvo!', 'Pedido foi salvo com sucesso.');
-      router.back();
+      // Verificar se a criação foi bem-sucedida
+      if (response && response.id) {
+        showToast('success', 'Pedido salvo!', `Pedido ${response.idPedido} criado com sucesso.`);
+        
+        // Limpar dados da tela
+        setOrderState({
+          customer: null,
+          products: [],
+          services: [],
+          observations: "",
+          subtotalProducts: 0,
+          subtotalServices: 0,
+          discount: 0,
+          total: 0,
+        });
+        
+        router.back();
+      } else {
+        throw new Error('Resposta inválida da API');
+      }
     } catch (error) {
       showToast('error', 'Erro ao salvar', 'Não foi possível salvar o pedido. Tente novamente.');
     }
@@ -383,7 +427,7 @@ export default function NewOrderScreen() {
                         {orderState.customer.name}
                       </Typography>
                       <Typography variant="caption" size="xs">
-                        CNPJ: {orderState.customer.cnpj}
+                        {orderState.customer.cnpj }
                       </Typography>
                       <Typography variant="caption" size="xs">
                         {orderState.customer.city}
@@ -720,7 +764,7 @@ export default function NewOrderScreen() {
         visible={productModalVisible}
         onClose={() => setProductModalVisible(false)}
         onSave={handleAddProducts}
-        existingProductIds={orderState.products.map((p) => p.productId)}
+        existingProductIds={orderState.products.map((p) => p.productId.toString())}
       />
 
       <SelectService

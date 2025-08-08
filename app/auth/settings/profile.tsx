@@ -14,13 +14,15 @@ import Typography from "@/components/ui/Typography";
 import Button from "@/components/ui/Button";
 import Input from "@/components/ui/Input";
 import MaskedInput from "@/components/ui/MaskedInput";
+import { useAuthStore } from "@/stores/authStore";
 
 export default function ProfileSettings() {
+  const { user } = useAuthStore();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    name: "João Silva",
-    email: "joao@empresa.com",
-    phone: "(11) 99999-9999",
+    name: user?.nome || "",
+    email: user?.username || "",
+    phone: "", // Campo telefone não existe no user, deixando vazio
   });
 
   const handleBack = () => {

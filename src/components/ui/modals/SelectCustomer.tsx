@@ -32,8 +32,10 @@ export default function SelectCustomer({
 
   // Carregamento inicial
   useEffect(() => {
-    loadCustomers();
-  }, []);
+    if (visible) {
+      loadCustomers();
+    }
+  }, [visible]);
 
 
 

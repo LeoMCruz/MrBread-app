@@ -5,6 +5,12 @@ import {
   GetOrdersParams,
   getOrders as getOrdersService,
   getOrderById as getOrderByIdService,
+  createOrder as createOrderService,
+  updateOrder as updateOrderService,
+  CreateOrderRequest,
+  CreateOrderResponse,
+  UpdateOrderRequest,
+  UpdateOrderResponse,
   formatOrderDate,
   formatOrderNumber
 } from "@/services/ordersService";
@@ -31,6 +37,8 @@ interface OrdersState {
   // Ações para Orders
   getOrders: (params?: GetOrdersParams) => Promise<FormattedOrder[]>;
   getOrderById: (id: string) => Promise<FormattedOrderDetail>;
+  createOrder: (data: CreateOrderRequest) => Promise<CreateOrderResponse>;
+  updateOrder: (data: UpdateOrderRequest) => Promise<UpdateOrderResponse>;
 
   // Ações gerais
   clearOrders: () => void;
@@ -96,6 +104,30 @@ export const useOrdersStore = create<OrdersState>((set, get) => ({
       console.error('Erro ao buscar detalhes do pedido:', error);
       showErrorToast('Erro ao carregar detalhes do pedido', 'Tente novamente mais tarde.');
       set({ selectedOrder: null });
+      throw error;
+    }
+  },
+
+  createOrder: async (data: CreateOrderRequest) => {
+    try {
+      const response = await createOrderService(data);
+      showSuccessToast('Pedido criado com sucesso!');
+      return response;
+    } catch (error) {
+      console.error('Erro ao criar pedido:', error);
+      showErrorToast('Erro ao criar pedido', 'Tente novamente mais tarde.');
+      throw error;
+    }
+  },
+
+  updateOrder: async (data: UpdateOrderRequest) => {
+    try {
+      const response = await updateOrderService(data);
+      showSuccessToast('Pedido atualizado com sucesso!');
+      return response;
+    } catch (error) {
+      console.error('Erro ao atualizar pedido:', error);
+      showErrorToast('Erro ao atualizar pedido', 'Tente novamente mais tarde.');
       throw error;
     }
   },
